@@ -255,7 +255,7 @@ function initMatchPanel() {
   teamBName.textContent = matchData.team_b_nama;
   
   caborBadge.textContent = matchData.cabor_nama;
-  faseBadge.textContent = matchData.kategori_nama;
+  faseBadge.textContent = matchData.fase ? `${matchData.kategori_nama} - ${matchData.fase}` : matchData.kategori_nama;
 
   currentScoreA = parseInt(matchData.skor_a || 0);
   currentScoreB = parseInt(matchData.skor_b || 0);
@@ -427,7 +427,7 @@ function broadcastState() {
     type: 'UPDATE_STATE',
     data: {
       cabor: matchData ? matchData.cabor_nama : 'CABOR',
-      fase: matchData ? matchData.kategori_nama : 'FASE',
+      fase: matchData ? (matchData.fase ? `${matchData.kategori_nama} - ${matchData.fase}` : matchData.kategori_nama) : 'FASE',
       teamAName: matchData ? matchData.team_a_nama : 'TEAM A',
       teamBName: matchData ? matchData.team_b_nama : 'TEAM B',
       scoreA: currentScoreA,
