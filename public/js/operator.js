@@ -88,6 +88,7 @@ const btnAnonEventA = document.getElementById('btn-anon-event-a');
 const btnAnonEventB = document.getElementById('btn-anon-event-b');
 
 const timelineList = document.getElementById('timeline-list');
+const selectPeriod = document.getElementById('select-period');
 
 // 1. CEK ONLINE STATUS
 function updateOnlineStatus() {
@@ -389,6 +390,57 @@ function initMatchPanel() {
   scoreADisplay.textContent = currentScoreA;
   scoreBDisplay.textContent = currentScoreB;
 
+  // Populate Period Dropdown
+  if (selectPeriod) {
+    selectPeriod.innerHTML = '';
+    const jml = parseInt(matchData.jumlah_babak) || 2;
+    const label = matchData.nama_babak || 'Babak';
+    
+    // Generate Babak Utama
+    for (let i = 1; i <= jml; i++) {
+      const val = `${label} ${i}`;
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      selectPeriod.appendChild(opt);
+    }
+    
+    // Standard Extras
+    const extras = (label.toLowerCase() === 'quarter') ? ['Overtime', 'Adu Penalti'] : ['Extra Time 1', 'Extra Time 2', 'Adu Penalti'];
+    extras.forEach(ex => {
+      const opt = document.createElement('option');
+      opt.value = ex;
+      opt.textContent = ex;
+      selectPeriod.appendChild(opt);
+    });
+    
+    // Custom option
+    const customOpt = document.createElement('option');
+    customOpt.value = '__add_custom__';
+    customOpt.textContent = '+ Tambah Sesi...';
+    selectPeriod.appendChild(customOpt);
+
+    // Set selected value
+    const current = matchData.current_period || `${label} 1`;
+    // If the option does not exist yet (custom period), insert it before __add_custom__
+    let hasOpt = false;
+    for (let i = 0; i < selectPeriod.options.length; i++) {
+      if (selectPeriod.options[i].value === current) {
+        hasOpt = true;
+        break;
+      }
+    }
+    if (!hasOpt) {
+      const opt = document.createElement('option');
+      opt.value = current;
+      opt.textContent = current;
+      selectPeriod.insertBefore(opt, customOpt);
+    }
+    selectPeriod.value = current;
+    matchData.current_period = current;
+    localStorage.setItem('active_match_data', JSON.stringify(matchData));
+  }
+
   // Pulihkan status roster pemain dari event history
   restoreRosterStatus();
 
@@ -561,7 +613,8 @@ function broadcastState() {
       teamBName: matchData ? matchData.team_b_nama : 'TEAM B',
       scoreA: currentScoreA,
       scoreB: currentScoreB,
-      timerText: `${formatNum(min)}:${formatNum(sec)}`
+      timerText: `${formatNum(min)}:${formatNum(sec)}`,
+      currentPeriod: matchData ? matchData.current_period : 'Babak 1'
     }
   });
 }
@@ -1011,6 +1064,37 @@ btnSyncNow.addEventListener('click', () => {
     alert("Koneksi internet Anda mati, tidak dapat melakukan sinkronisasi paksa.");
   }
 });
+
+// PERIOD / BABAK SELECT LISTENER
+if (selectPeriod) {
+  selectPeriod.addEventListener('change', () => {
+    let val = selectPeriod.value;
+    if (val === '__add_custom__') {
+      const custom = prompt("Masukkan nama sesi tambahan (contoh: Golden Goal, Extra Time 3):");
+      if (custom) {
+        const opt = document.createElement('option');
+        opt.value = custom;
+        opt.textContent = custom;
+        const customOpt = selectPeriod.querySelector('option[value="__add_custom__"]');
+        selectPeriod.insertBefore(opt, customOpt);
+        selectPeriod.value = custom;
+        val = custom;
+      } else {
+        // Revert to first option
+        selectPeriod.value = selectPeriod.options[0].value;
+        return;
+      }
+    }
+
+    matchData.current_period = val;
+    localStorage.setItem('active_match_data', JSON.stringify(matchData));
+    
+    broadcastState();
+    
+    // Sync to database
+    queueSyncAction('/api/desktop/update-period', { id_jadwal: matchData.id_jadwal, current_period: val });
+  });
+}
 
 // RESET & KELUAR
 btnResetMatch.addEventListener('click', () => {

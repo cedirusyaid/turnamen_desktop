@@ -4,6 +4,7 @@ const broadcastChannel = new BroadcastChannel('live_score_channel');
 const sbCabor = document.getElementById('sb-cabor');
 const sbTournament = document.getElementById('sb-tournament');
 const sbFase = document.getElementById('sb-fase');
+const sbPeriod = document.getElementById('sb-period');
 const sbTeamA = document.getElementById('sb-team-a');
 const sbTeamB = document.getElementById('sb-team-b');
 const sbScoreA = document.getElementById('sb-score-a');
@@ -37,6 +38,9 @@ function updateScoreboardUI(data) {
     sbTournament.textContent = data.namaTurnamen || 'TURNAMEN';
   }
   sbFase.textContent = data.fase || 'PERTANDINGAN';
+  if (sbPeriod) {
+    sbPeriod.textContent = data.currentPeriod || 'BABAK 1';
+  }
   
   sbTeamA.textContent = data.teamAName || 'TEAM A';
   sbTeamB.textContent = data.teamBName || 'TEAM B';
