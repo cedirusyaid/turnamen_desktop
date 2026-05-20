@@ -6,6 +6,8 @@
   <title>Panel Operator - Match Updater</title>
   <link rel="stylesheet" href="css/operator.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
   <div class="app-container">
@@ -17,63 +19,18 @@
         <p>Unduh data pertandingan dari server pusat sebelum memulai.</p>
         
         <div class="form-group">
-          <label>Link / URL Match Center</label>
-          <input type="url" id="server-url" placeholder="http://localhost/turnamen/nama-slug-turnamen">
+          <label>Alamat Server Pusat</label>
+          <input type="url" id="server-url" placeholder="http://localhost:8080">
         </div>
 
-        <div class="auth-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
-          <button type="button" id="tab-login-account" class="tab-btn active" style="flex: 1; padding: 10px; border: none; background: #00d2ff; color: #0d0f1a; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: bold; transition: all 0.2s ease;">Akun Login</button>
-          <button type="button" id="tab-login-token" class="tab-btn" style="flex: 1; padding: 10px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #a4b0be; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: bold; transition: all 0.2s ease;">Manual Token</button>
-        </div>
-
-        <!-- Form Akun Login -->
-        <div id="form-account-login">
-          <div class="form-group">
-            <label>Username / NIP</label>
-            <input type="text" id="login-username" placeholder="Masukkan Username Akun">
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="login-password" placeholder="Masukkan Password Akun">
-          </div>
-          <div style="display: flex; align-items: center; margin: 15px 0;">
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-            <span style="padding: 0 10px; font-size: 0.75rem; color: #a4b0be; text-transform: uppercase;">Atau</span>
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-          </div>
-          <button type="button" id="btn-google-login" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; transition: all 0.2s ease;">
-            <svg width="18" height="18" viewBox="0 0 24 24" style="background: white; border-radius: 50%; padding: 2px;">
-              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.72z"/>
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
-              <path fill="#FBBC05" d="M5.32 14.24c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.51H1.21A11.94 11.94 0 0 0 0 12c0 1.92.45 3.74 1.21 5.49l4.11-3.25z"/>
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 6.51l4.11 3.25c.94-2.85 3.57-4.96 6.68-4.96z"/>
-            </svg>
-            Masuk dengan Google
-          </button>
-        </div>
-
-        <!-- Form Token API -->
-        <div id="form-token-login" style="display: none;">
-          <div class="form-group">
-            <label>API Auth Token</label>
-            <input type="password" id="auth-token" placeholder="Masukkan Token Akses Desktop">
-          </div>
+        <div class="form-group">
+          <label>Kode Akses Operator (PIN)</label>
+          <input type="text" id="auth-token" placeholder="Contoh: 8K3M9A" style="font-size: 1.2rem; text-align: center; letter-spacing: 5px; font-weight: bold; text-transform: uppercase;">
         </div>
         
-        <button id="btn-download" class="btn-primary">Koneksikan & Ambil Pertandingan</button>
+        <button id="btn-download" class="btn-primary">Koneksikan & Buka Pertandingan</button>
         <div id="setup-status" class="status-msg"></div>
 
-        <!-- Match Selector Section (Hidden initially) -->
-        <div id="match-selector-container" style="display: none; margin-top: 15px;">
-          <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0;"></div>
-          <div class="form-group">
-            <label id="match-select-title" style="font-weight: bold; color: #00d2ff;">Pilih Pertandingan</label>
-            <select id="match-select" style="width: 100%; padding: 12px; background: #161a2e; border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; font-family: inherit; font-size: 0.9rem; cursor: pointer; outline: none; margin-top: 5px;">
-              <option value="">-- Pilih Pertandingan --</option>
-            </select>
-          </div>
-          <button id="btn-start-operator" class="btn-primary" style="margin-top: 10px;">Mulai Operator Pertandingan</button>
-        </div>
       </div>
     </div>
 
@@ -238,6 +195,33 @@
 
     </div>
   </div>
+
+    <!-- MODAL EVENT TANPA PEMAIN -->
+    <div id="anon-event-modal" class="modal-overlay" style="display: none;">
+      <div class="setup-box" style="text-align: left; max-width: 420px; box-sizing: border-box;">
+        <h2 style="margin-top: 0; color: #00d2ff;">👤 Log Event Tanpa Pemain</h2>
+        <p id="anon-modal-team-label" style="font-weight: bold; margin-bottom: 1.5rem; color: #ff007f; margin-top: 0.2rem;">Tim: A</p>
+        
+        <input type="hidden" id="anon-team-type">
+        
+        <div class="form-group" style="margin-bottom: 1.2rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: #fff;">Jenis Event</label>
+          <select id="anon-event-type" style="width: 100%; padding: 12px; background: rgba(8, 10, 21, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem;">
+            <!-- Options dynamically loaded via JS -->
+          </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1.8rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: #fff;">Keterangan (Opsional)</label>
+          <input type="text" id="anon-event-desc" placeholder="Contoh: Kartu Kuning Official Tim" style="width: 100%; padding: 12px; background: rgba(8, 10, 21, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 10px;">
+          <button type="button" id="btn-anon-cancel" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem;">Batal</button>
+          <button type="button" id="btn-anon-save" style="flex: 1; padding: 12px; background: #00d2ff; color: #0d0f1a; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem;">Simpan Event</button>
+        </div>
+      </div>
+    </div>
 
   <script src="js/operator.js"></script>
 </body>

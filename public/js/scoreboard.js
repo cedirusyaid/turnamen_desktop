@@ -20,6 +20,35 @@ const overlayTeam = document.getElementById('overlay-team');
 
 let overlayTimeout = null;
 
+// --- FULLSCREEN CONTROLS ---
+// Toggle fullscreen via Double Click
+document.addEventListener('dblclick', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log(`Error attempting to enable fullscreen: ${err.message}`);
+    });
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+});
+
+// Toggle fullscreen via F11
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F11') {
+    e.preventDefault();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }
+});
+// ---------------------------
+
 // Mendengarkan instruksi broadcast dari Panel Operator
 broadcastChannel.onmessage = (event) => {
   const { type, data } = event.data;

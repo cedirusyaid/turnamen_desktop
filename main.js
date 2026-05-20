@@ -103,8 +103,9 @@ ipcMain.on('start-google-login', (event, serverUrl) => {
       try {
         const parsedUrl = new URL(url);
         const token = parsedUrl.searchParams.get('token');
+        const id_user = parsedUrl.searchParams.get('id_user');
         if (token) {
-          event.reply('google-login-success', token);
+          event.reply('google-login-success', { token, id_user });
         } else {
           event.reply('google-login-failed', 'Token tidak ditemukan.');
         }
