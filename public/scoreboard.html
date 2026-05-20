@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Videotron Scoreboard</title>
+  <link rel="stylesheet" href="css/scoreboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="scoreboard-container">
+    
+    <!-- HEADER CABOR & FASE -->
+    <header class="scoreboard-header">
+      <div id="sb-cabor" class="sb-badge">CABOR</div>
+      <div id="sb-fase" class="sb-badge-phase">FASE PERTANDINGAN</div>
+    </header>
+
+    <!-- PAPAN SKOR UTAMA -->
+    <main class="sb-board">
+      
+      <!-- TIM A -->
+      <div class="sb-team team-left">
+        <div class="sb-team-logo" id="sb-logo-a">A</div>
+        <h2 class="sb-team-name" id="sb-team-a">TEAM A</h2>
+      </div>
+
+      <!-- ANGKA SKOR -->
+      <div class="sb-score-container">
+        <div class="sb-score" id="sb-score-a">0</div>
+        <div class="sb-colon">:</div>
+        <div class="sb-score" id="sb-score-b">0</div>
+      </div>
+
+      <!-- TIM B -->
+      <div class="sb-team team-right">
+        <div class="sb-team-logo" id="sb-logo-b">B</div>
+        <h2 class="sb-team-name" id="sb-team-b">TEAM B</h2>
+      </div>
+
+    </main>
+
+    <!-- WAKTU / TIMER -->
+    <footer class="sb-footer">
+      <div class="sb-timer" id="sb-timer">00:00</div>
+    </footer>
+
+    <!-- BANNER OVERLAY NOTIFIKASI EVENT (GOL/KARTU) -->
+    <div id="event-overlay" class="event-overlay">
+      <div class="event-banner" id="event-banner">
+        <div class="event-title" id="overlay-title">GOAL!!!</div>
+        <div class="event-player" id="overlay-player">Nama Pemain (Nomor)</div>
+        <div class="event-team" id="overlay-team">Team Name</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/scoreboard.js"></script>
+</body>
+</html>

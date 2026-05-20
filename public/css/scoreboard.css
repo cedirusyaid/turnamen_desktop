@@ -1,0 +1,239 @@
+/* GLOBAL STYLES */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #05060b;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* SCOREBOARD CONTAINER (16:9 Aspect Ratio Box) */
+.scoreboard-container {
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #151828 0%, #05060b 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3vh 5vw;
+  position: relative;
+  border: 4px solid #1a1d32;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+}
+
+/* HEADER INFO */
+.scoreboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1.5vh;
+}
+
+.sb-badge {
+  font-size: 2.2vh;
+  font-weight: 800;
+  background: linear-gradient(135deg, #00d2ff 0%, #0066ff 100%);
+  color: white;
+  padding: 0.8vh 2vw;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+}
+
+.sb-badge-phase {
+  font-size: 2.2vh;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffa502;
+  border: 1px solid rgba(255, 165, 2, 0.3);
+  padding: 0.8vh 2vw;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* MAIN BOARD LAYOUT */
+.sb-board {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.2fr;
+  align-items: center;
+  flex: 1;
+  margin: 4vh 0;
+}
+
+.sb-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2vh;
+  text-align: center;
+}
+
+.sb-team-logo {
+  width: 18vh;
+  height: 18vh;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 8vh;
+  font-weight: 900;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.team-left .sb-team-logo {
+  border-color: #00d2ff;
+  color: #00d2ff;
+  text-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
+}
+
+.team-right .sb-team-logo {
+  border-color: #ff9f43;
+  color: #ff9f43;
+  text-shadow: 0 0 15px rgba(255, 159, 67, 0.5);
+  box-shadow: 0 0 20px rgba(255, 159, 67, 0.2);
+}
+
+.sb-team-name {
+  font-size: 5vh;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  max-width: 30vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.team-left .sb-team-name {
+  color: #ffffff;
+}
+
+.team-right .sb-team-name {
+  color: #ffffff;
+}
+
+/* SCORE SYSTEM */
+.sb-score-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3vw;
+}
+
+.sb-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18vh;
+  font-weight: 900;
+  color: #ffffff;
+  min-width: 12vw;
+  text-align: center;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.sb-colon {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14vh;
+  color: #a4b0be;
+  animation: blink 1s infinite;
+}
+
+/* FOOTER TIMER */
+.sb-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top: 2px solid rgba(255, 255, 255, 0.05);
+  padding-top: 2vh;
+}
+
+.sb-timer {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10vh;
+  font-weight: 900;
+  color: #2ed573;
+  letter-spacing: 4px;
+  text-shadow: 0 0 15px rgba(46, 213, 115, 0.4);
+}
+
+/* GOAL EVENT CELEBRATION OVERLAY */
+.event-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 6, 11, 0.95);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.event-banner {
+  text-align: center;
+  transform: scale(0.8);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.event-overlay.active {
+  display: flex;
+}
+
+.event-overlay.active .event-banner {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.event-title {
+  font-size: 15vh;
+  font-weight: 900;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: #2ed573;
+  text-shadow: 0 0 40px #2ed573;
+  animation: pulse 1s infinite alternate;
+  margin-bottom: 2vh;
+}
+
+.event-player {
+  font-size: 7vh;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 1.5vh;
+}
+
+.event-team {
+  font-size: 4vh;
+  font-weight: 600;
+  color: #a4b0be;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* ANIMATIONS */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); text-shadow: 0 0 30px #2ed573; }
+  100% { transform: scale(1.05); text-shadow: 0 0 60px #2ed573; }
+}

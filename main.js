@@ -1,0 +1,94 @@
+const { app, BrowserWindow, screen, ipcMain } = require('electron');
+const path = require('path');
+
+let operatorWindow = null;
+let scoreboardWindow = null;
+
+function createOperatorWindow() {
+  operatorWindow = new BrowserWindow({
+    width: 1024,
+    height: 768,
+    title: "Panel Operator Match Updater",
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  operatorWindow.loadFile(path.join(__dirname, 'public/operator.html'));
+
+  operatorWindow.on('closed', () => {
+    if (scoreboardWindow) scoreboardWindow.close();
+    operatorWindow = null;
+  });
+}
+
+function openScoreboardWindow() {
+  if (scoreboardWindow) {
+    scoreboardWindow.focus();
+    return;
+  }
+
+  const displays = screen.getAllDisplays();
+  // Cari monitor eksternal (layar kedua), jika tidak ada gunakan monitor utama
+  const externalDisplay = displays.find((display) => {
+    return display.bounds.x !== 0 || display.bounds.y !== 0;
+  });
+
+  const windowOptions = {
+    width: 1280,
+    height: 720,
+    title: "Papan Skor Videotron",
+    autoHideMenuBar: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  };
+
+  if (externalDisplay) {
+    // Posisikan di layar kedua
+    windowOptions.x = externalDisplay.bounds.x;
+    windowOptions.y = externalDisplay.bounds.y;
+    windowOptions.fullscreen = true;
+  }
+
+  scoreboardWindow = new BrowserWindow(windowOptions);
+  scoreboardWindow.loadFile(path.join(__dirname, 'public/scoreboard.html'));
+
+  scoreboardWindow.on('closed', () => {
+    scoreboardWindow = null;
+    if (operatorWindow) {
+      operatorWindow.webContents.send('scoreboard-status', false);
+    }
+  });
+}
+
+ipcMain.on('open-scoreboard', () => {
+  openScoreboardWindow();
+  if (operatorWindow) {
+    operatorWindow.webContents.send('scoreboard-status', true);
+  }
+});
+
+ipcMain.on('close-scoreboard', () => {
+  if (scoreboardWindow) {
+    scoreboardWindow.close();
+  }
+});
+
+app.whenReady().then(() => {
+  createOperatorWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createOperatorWindow();
+    }
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
