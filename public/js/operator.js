@@ -1139,6 +1139,24 @@ function generateUUID() {
 
 // AUTO RESTORE SESSION ON LOAD
 window.addEventListener('load', () => {
+  // Handle Capacitor (Android/iOS Tablet) Native Integrations
+  if (window.Capacitor && window.Capacitor.Plugins) {
+    const { ScreenOrientation } = window.Capacitor.Plugins;
+    if (ScreenOrientation) {
+      ScreenOrientation.lock({ orientation: 'landscape' })
+        .then(() => console.log('Orientasi dikunci ke Landscape (Capacitor)'))
+        .catch((err) => console.warn('Gagal mengunci orientasi:', err));
+    }
+  }
+
+  // Restore server URL from localStorage if exists, otherwise fallback to default
+  const savedServerUrl = localStorage.getItem('temp_server_url');
+  if (savedServerUrl) {
+    serverUrlInput.value = savedServerUrl;
+  } else {
+    serverUrlInput.value = 'https://turnamen.info';
+  }
+
   const savedData = localStorage.getItem('active_match_data');
   if (savedData) {
     matchData = JSON.parse(savedData);

@@ -1,9 +1,9 @@
 {
   "name": "turnamen-match-updater",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Desktop Match Scorer & Videotron Scoreboard",
-  "author": "Muhammad Rusyaid <rusyaid@sinjaikab.go.id>",
-  "homepage": "https://turnamen.sinjaikab.go.id",
+  "author": "Muhammad Rusyaid <admin@turnamen.info>",
+  "homepage": "https://turnamen.info",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
