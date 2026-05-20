@@ -64,6 +64,19 @@ body {
   letter-spacing: 1px;
 }
 
+.sb-tournament-name {
+  font-size: 2.6vh;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  max-width: 40vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
 /* MAIN BOARD LAYOUT */
 .sb-board {
   display: grid;

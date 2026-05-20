@@ -2,6 +2,7 @@ const broadcastChannel = new BroadcastChannel('live_score_channel');
 
 // DOM Elements
 const sbCabor = document.getElementById('sb-cabor');
+const sbTournament = document.getElementById('sb-tournament');
 const sbFase = document.getElementById('sb-fase');
 const sbTeamA = document.getElementById('sb-team-a');
 const sbTeamB = document.getElementById('sb-team-b');
@@ -32,6 +33,9 @@ broadcastChannel.onmessage = (event) => {
 // 1. UPDATE DISPLAY PAPAN SKOR
 function updateScoreboardUI(data) {
   sbCabor.textContent = data.cabor || 'CABOR';
+  if (sbTournament) {
+    sbTournament.textContent = data.namaTurnamen || 'TURNAMEN';
+  }
   sbFase.textContent = data.fase || 'PERTANDINGAN';
   
   sbTeamA.textContent = data.teamAName || 'TEAM A';

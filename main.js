@@ -77,6 +77,61 @@ ipcMain.on('close-scoreboard', () => {
   }
 });
 
+ipcMain.on('start-google-login', (event, serverUrl) => {
+  const loginUrl = `${serverUrl}/api/desktop/google-login`;
+  
+  const authWindow = new BrowserWindow({
+    width: 600,
+    height: 700,
+    parent: operatorWindow,
+    modal: true,
+    show: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  });
+
+  authWindow.loadURL(loginUrl);
+  authWindow.once('ready-to-show', () => {
+    authWindow.show();
+  });
+
+  const handleCallback = (url) => {
+    if (url.includes('/api/desktop/google-success-page')) {
+      try {
+        const parsedUrl = new URL(url);
+        const token = parsedUrl.searchParams.get('token');
+        if (token) {
+          event.reply('google-login-success', token);
+        } else {
+          event.reply('google-login-failed', 'Token tidak ditemukan.');
+        }
+      } catch (e) {
+        event.reply('google-login-failed', 'Gagal memproses callback URL.');
+      }
+      setTimeout(() => {
+        if (!authWindow.isDestroyed()) {
+          authWindow.destroy();
+        }
+      }, 1500);
+    }
+  };
+
+  authWindow.webContents.on('will-navigate', (e, url) => {
+    handleCallback(url);
+  });
+
+  authWindow.webContents.on('did-redirect-navigation', (e, url) => {
+    handleCallback(url);
+  });
+
+  authWindow.webContents.on('did-navigate', (e, url) => {
+    handleCallback(url);
+  });
+});
+
 app.whenReady().then(() => {
   createOperatorWindow();
 

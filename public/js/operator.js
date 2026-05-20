@@ -42,6 +42,7 @@ const formAccountLogin = document.getElementById('form-account-login');
 const formTokenLogin = document.getElementById('form-token-login');
 const loginUsernameInput = document.getElementById('login-username');
 const loginPasswordInput = document.getElementById('login-password');
+const btnGoogleLogin = document.getElementById('btn-google-login');
 
 // DOM ELEMENTS - MAIN PANEL
 const mainLayout = document.querySelector('.main-layout');
@@ -156,6 +157,39 @@ tabTokenLogin.addEventListener('click', () => {
   formTokenLogin.style.display = 'block';
   formAccountLogin.style.display = 'none';
 });
+
+// Google Login Event Handlers
+if (btnGoogleLogin) {
+  btnGoogleLogin.addEventListener('click', () => {
+    const serverUrl = serverUrlInput.value.trim();
+    if (!serverUrl) {
+      showSetupStatus("Masukkan URL Web Server terlebih dahulu!", "error");
+      return;
+    }
+
+    if (ipcRenderer) {
+      showSetupStatus("Menunggu login Google di jendela baru...", "info");
+      ipcRenderer.send('start-google-login', serverUrl);
+    } else {
+      const loginUrl = `${serverUrl}/api/desktop/google-login`;
+      window.open(loginUrl, '_blank');
+      showSetupStatus("Gunakan tombol 'Manual Token' untuk memasukkan token yang didapat setelah login.", "info");
+    }
+  });
+}
+
+if (ipcRenderer) {
+  ipcRenderer.on('google-login-success', (event, token) => {
+    authTokenInput.value = token;
+    tabTokenLogin.click();
+    showSetupStatus("Otentikasi Google berhasil! Mengunduh data pertandingan...", "success");
+    btnDownload.click();
+  });
+
+  ipcRenderer.on('google-login-failed', (event, errorMsg) => {
+    showSetupStatus(`Gagal Login Google: ${errorMsg}`, "error");
+  });
+}
 
 // 4. DOWNLOAD DATA PERTANDINGAN (PRE-MATCH)
 btnDownload.addEventListener('click', async () => {
@@ -428,6 +462,7 @@ function broadcastState() {
     data: {
       cabor: matchData ? matchData.cabor_nama : 'CABOR',
       fase: matchData ? (matchData.fase ? `${matchData.kategori_nama} - ${matchData.fase}` : matchData.kategori_nama) : 'FASE',
+      namaTurnamen: matchData ? matchData.nama_turnamen : 'TURNAMEN',
       teamAName: matchData ? matchData.team_a_nama : 'TEAM A',
       teamBName: matchData ? matchData.team_b_nama : 'TEAM B',
       scoreA: currentScoreA,
