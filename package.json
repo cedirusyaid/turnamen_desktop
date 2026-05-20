@@ -1,13 +1,42 @@
 {
   "name": "turnamen-match-updater",
   "version": "1.0.0",
-  "description": "Desktop Match Updater & Videotron Scoreboard",
+  "description": "Desktop Match Scorer & Videotron Scoreboard",
+  "author": "Muhammad Rusyaid <rusyaid@sinjaikab.go.id>",
+  "homepage": "https://turnamen.sinjaikab.go.id",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "info.turnamen.scorer",
+    "productName": "TurnamenScorer",
+    "files": [
+      "main.js",
+      "public/**/*"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Sports"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    }
   },
   "dependencies": {},
   "devDependencies": {
-    "electron": "^30.0.0"
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
   }
 }

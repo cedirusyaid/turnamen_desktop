@@ -28,6 +28,14 @@ const authTokenInput = document.getElementById('auth-token');
 const btnDownload = document.getElementById('btn-download');
 const setupStatus = document.getElementById('setup-status');
 
+// New Auth Selectors
+const tabAccountLogin = document.getElementById('tab-login-account');
+const tabTokenLogin = document.getElementById('tab-login-token');
+const formAccountLogin = document.getElementById('form-account-login');
+const formTokenLogin = document.getElementById('form-token-login');
+const loginUsernameInput = document.getElementById('login-username');
+const loginPasswordInput = document.getElementById('login-password');
+
 // DOM ELEMENTS - MAIN PANEL
 const mainLayout = document.querySelector('.main-layout');
 const connectionStatus = document.getElementById('connection-status');
@@ -102,15 +110,86 @@ btnOpenVideotron.addEventListener('click', () => {
   }
 });
 
+// Tab Switching logic
+let activeAuthMode = 'account'; // default
+
+tabAccountLogin.addEventListener('click', () => {
+  activeAuthMode = 'account';
+  tabAccountLogin.classList.add('active');
+  tabAccountLogin.style.background = '#00d2ff';
+  tabAccountLogin.style.color = '#0d0f1a';
+  tabAccountLogin.style.border = 'none';
+
+  tabTokenLogin.classList.remove('active');
+  tabTokenLogin.style.background = 'transparent';
+  tabTokenLogin.style.color = '#a4b0be';
+  tabTokenLogin.style.border = '1px solid rgba(255,255,255,0.2)';
+
+  formAccountLogin.style.display = 'block';
+  formTokenLogin.style.display = 'none';
+});
+
+tabTokenLogin.addEventListener('click', () => {
+  activeAuthMode = 'token';
+  tabTokenLogin.classList.add('active');
+  tabTokenLogin.style.background = '#00d2ff';
+  tabTokenLogin.style.color = '#0d0f1a';
+  tabTokenLogin.style.border = 'none';
+
+  tabAccountLogin.classList.remove('active');
+  tabAccountLogin.style.background = 'transparent';
+  tabAccountLogin.style.color = '#a4b0be';
+  tabAccountLogin.style.border = '1px solid rgba(255,255,255,0.2)';
+
+  formTokenLogin.style.display = 'block';
+  formAccountLogin.style.display = 'none';
+});
+
 // 4. DOWNLOAD DATA PERTANDINGAN (PRE-MATCH)
 btnDownload.addEventListener('click', async () => {
   const serverUrl = serverUrlInput.value.trim();
   const matchId = matchIdInput.value.trim();
-  const token = authTokenInput.value.trim();
+  let token = '';
 
-  if (!serverUrl || !matchId || !token) {
-    showSetupStatus("Semua input wajib diisi!", "error");
+  if (!serverUrl || !matchId) {
+    showSetupStatus("Server URL dan Match ID wajib diisi!", "error");
     return;
+  }
+
+  if (activeAuthMode === 'token') {
+    token = authTokenInput.value.trim();
+    if (!token) {
+      showSetupStatus("API Auth Token wajib diisi!", "error");
+      return;
+    }
+  } else {
+    // Mode Akun Login
+    const username = loginUsernameInput.value.trim();
+    const password = loginPasswordInput.value.trim();
+    if (!username || !password) {
+      showSetupStatus("Username & Password wajib diisi!", "error");
+      return;
+    }
+
+    showSetupStatus("Melakukan autentikasi akun...", "info");
+    try {
+      const loginRes = await fetch(`${serverUrl}/api/desktop/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const loginData = await loginRes.json();
+      if (loginRes.status === 200 && loginData.status) {
+        token = loginData.token;
+      } else {
+        showSetupStatus(loginData.message || "Login Gagal. Cek kembali akun Anda.", "error");
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+      showSetupStatus("Gagal menghubungi server untuk login.", "error");
+      return;
+    }
   }
 
   showSetupStatus("Menghubungkan & mengunduh data...", "info");

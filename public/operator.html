@@ -26,9 +26,29 @@
           <input type="text" id="match-id" placeholder="Masukkan ID Pertandingan">
         </div>
 
-        <div class="form-group">
-          <label>API Auth Token</label>
-          <input type="password" id="auth-token" placeholder="Masukkan Token Akses Desktop">
+        <div class="auth-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button type="button" id="tab-login-account" class="tab-btn active" style="flex: 1; padding: 10px; border: none; background: #00d2ff; color: #0d0f1a; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: bold; transition: all 0.2s ease;">Akun Login</button>
+          <button type="button" id="tab-login-token" class="tab-btn" style="flex: 1; padding: 10px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #a4b0be; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: bold; transition: all 0.2s ease;">Manual Token</button>
+        </div>
+
+        <!-- Form Akun Login -->
+        <div id="form-account-login">
+          <div class="form-group">
+            <label>Username / NIP</label>
+            <input type="text" id="login-username" placeholder="Masukkan Username Akun">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="Masukkan Password Akun">
+          </div>
+        </div>
+
+        <!-- Form Token API -->
+        <div id="form-token-login" style="display: none;">
+          <div class="form-group">
+            <label>API Auth Token</label>
+            <input type="password" id="auth-token" placeholder="Masukkan Token Akses Desktop">
+          </div>
         </div>
         
         <button id="btn-download" class="btn-primary">Download Data Pertandingan</button>
