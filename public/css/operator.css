@@ -637,6 +637,15 @@ button {
   background: #00d2ff;
   color: #0d0f1a;
 }
+.btn-player-action.bd {
+  background: rgba(255, 75, 75, 0.15);
+  color: #ff4757;
+}
+
+.btn-player-action.bd:hover {
+  background: #ff4757;
+  color: #fff;
+}
 
 .btn-player-sub {
   background: transparent;

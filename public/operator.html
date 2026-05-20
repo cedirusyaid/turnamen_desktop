@@ -17,13 +17,8 @@
         <p>Unduh data pertandingan dari server pusat sebelum memulai.</p>
         
         <div class="form-group">
-          <label>URL Web Server</label>
-          <input type="url" id="server-url" value="http://localhost:8080" placeholder="https://turnamen.domain.com">
-        </div>
-        
-        <div class="form-group">
-          <label>Match ID</label>
-          <input type="text" id="match-id" placeholder="Masukkan ID Pertandingan">
+          <label>Link / URL Match Center</label>
+          <input type="url" id="server-url" placeholder="http://localhost/turnamen/nama-slug-turnamen">
         </div>
 
         <div class="auth-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -65,8 +60,20 @@
           </div>
         </div>
         
-        <button id="btn-download" class="btn-primary">Download Data Pertandingan</button>
+        <button id="btn-download" class="btn-primary">Koneksikan & Ambil Pertandingan</button>
         <div id="setup-status" class="status-msg"></div>
+
+        <!-- Match Selector Section (Hidden initially) -->
+        <div id="match-selector-container" style="display: none; margin-top: 15px;">
+          <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0;"></div>
+          <div class="form-group">
+            <label id="match-select-title" style="font-weight: bold; color: #00d2ff;">Pilih Pertandingan</label>
+            <select id="match-select" style="width: 100%; padding: 12px; background: #161a2e; border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; font-family: inherit; font-size: 0.9rem; cursor: pointer; outline: none; margin-top: 5px;">
+              <option value="">-- Pilih Pertandingan --</option>
+            </select>
+          </div>
+          <button id="btn-start-operator" class="btn-primary" style="margin-top: 10px;">Mulai Operator Pertandingan</button>
+        </div>
       </div>
     </div>
 

@@ -30,10 +30,14 @@ broadcastChannel.onmessage = (event) => {
 // DOM ELEMENTS - SETUP
 const setupModal = document.getElementById('setup-modal');
 const serverUrlInput = document.getElementById('server-url');
-const matchIdInput = document.getElementById('match-id');
 const authTokenInput = document.getElementById('auth-token');
 const btnDownload = document.getElementById('btn-download');
 const setupStatus = document.getElementById('setup-status');
+
+const matchSelectorContainer = document.getElementById('match-selector-container');
+const matchSelect = document.getElementById('match-select');
+const btnStartOperator = document.getElementById('btn-start-operator');
+const matchSelectTitle = document.getElementById('match-select-title');
 
 // New Auth Selectors
 const tabAccountLogin = document.getElementById('tab-login-account');
@@ -158,20 +162,42 @@ tabTokenLogin.addEventListener('click', () => {
   formAccountLogin.style.display = 'none';
 });
 
+// Helper to parse Match Center URL to get serverUrl and slug
+function parseMatchCenterUrl(inputUrl) {
+  try {
+    let cleanUrl = inputUrl.trim();
+    if (cleanUrl.endsWith('/')) {
+      cleanUrl = cleanUrl.slice(0, -1);
+    }
+    const parsed = new URL(cleanUrl);
+    const pathParts = parsed.pathname.split('/').filter(Boolean);
+    if (pathParts.length === 0) {
+      return null;
+    }
+    const slug = pathParts[pathParts.length - 1];
+    const pathWithoutSlug = parsed.pathname.substring(0, parsed.pathname.lastIndexOf('/' + slug));
+    const serverUrl = parsed.origin + (pathWithoutSlug || '');
+    return { serverUrl, slug };
+  } catch (e) {
+    return null;
+  }
+}
+
 // Google Login Event Handlers
 if (btnGoogleLogin) {
   btnGoogleLogin.addEventListener('click', () => {
-    const serverUrl = serverUrlInput.value.trim();
-    if (!serverUrl) {
-      showSetupStatus("Masukkan URL Web Server terlebih dahulu!", "error");
+    const matchCenterUrl = serverUrlInput.value.trim();
+    const urlParts = parseMatchCenterUrl(matchCenterUrl);
+    if (!urlParts) {
+      showSetupStatus("Masukkan URL Match Center yang valid!", "error");
       return;
     }
 
     if (ipcRenderer) {
       showSetupStatus("Menunggu login Google di jendela baru...", "info");
-      ipcRenderer.send('start-google-login', serverUrl);
+      ipcRenderer.send('start-google-login', urlParts.serverUrl);
     } else {
-      const loginUrl = `${serverUrl}/api/desktop/google-login`;
+      const loginUrl = `${urlParts.serverUrl}/api/desktop/google-login`;
       window.open(loginUrl, '_blank');
       showSetupStatus("Gunakan tombol 'Manual Token' untuk memasukkan token yang didapat setelah login.", "info");
     }
@@ -182,7 +208,7 @@ if (ipcRenderer) {
   ipcRenderer.on('google-login-success', (event, token) => {
     authTokenInput.value = token;
     tabTokenLogin.click();
-    showSetupStatus("Otentikasi Google berhasil! Mengunduh data pertandingan...", "success");
+    showSetupStatus("Otentikasi Google berhasil! Mengunduh daftar pertandingan...", "success");
     btnDownload.click();
   });
 
@@ -191,16 +217,18 @@ if (ipcRenderer) {
   });
 }
 
-// 4. DOWNLOAD DATA PERTANDINGAN (PRE-MATCH)
+// 4. DOWNLOAD DAFTAR PERTANDINGAN (PRE-MATCH)
 btnDownload.addEventListener('click', async () => {
-  const serverUrl = serverUrlInput.value.trim();
-  const matchId = matchIdInput.value.trim();
+  const matchCenterUrl = serverUrlInput.value.trim();
+  const urlParts = parseMatchCenterUrl(matchCenterUrl);
   let token = '';
 
-  if (!serverUrl || !matchId) {
-    showSetupStatus("Server URL dan Match ID wajib diisi!", "error");
+  if (!urlParts) {
+    showSetupStatus("URL Match Center tidak valid! Format: http://domain/turnamen/slug", "error");
     return;
   }
+
+  const { serverUrl, slug } = urlParts;
 
   if (activeAuthMode === 'token') {
     token = authTokenInput.value.trim();
@@ -238,10 +266,10 @@ btnDownload.addEventListener('click', async () => {
     }
   }
 
-  showSetupStatus("Menghubungkan & mengunduh data...", "info");
+  showSetupStatus("Menghubungkan & mengunduh daftar pertandingan...", "info");
 
   try {
-    const response = await fetch(`${serverUrl}/api/desktop/download-match/${matchId}`, {
+    const response = await fetch(`${serverUrl}/api/desktop/get-matches/${slug}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -252,28 +280,93 @@ btnDownload.addEventListener('click', async () => {
     const result = await response.json();
 
     if (response.status === 200 && result.status) {
-      matchData = result.data;
-      matchData.serverUrl = serverUrl;
-      matchData.token = token;
+      // Kosongkan opsi dropdown
+      matchSelect.innerHTML = '<option value="">-- Pilih Pertandingan --</option>';
       
-      // Simpan konfigurasi ke localStorage
-      localStorage.setItem('active_match_data', JSON.stringify(matchData));
-      localStorage.setItem('sync_queue', JSON.stringify([]));
+      if (result.matches && result.matches.length > 0) {
+        result.matches.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id_jadwal;
+          opt.textContent = `[${m.kategori_nama}] ${m.team_a_nama} vs ${m.team_b_nama} (${m.fase})`;
+          matchSelect.appendChild(opt);
+        });
 
-      initMatchPanel();
-      showSetupStatus("Download Berhasil!", "success");
-      setTimeout(() => {
-        setupModal.style.display = 'none';
-        mainLayout.style.display = 'flex';
-      }, 1000);
+        // Simpan variabel koneksi sementara
+        localStorage.setItem('temp_server_url', serverUrl);
+        localStorage.setItem('temp_token', token);
+
+        // Update label dropdown
+        matchSelectTitle.textContent = `Pilih Pertandingan (${result.nama_turnamen})`;
+
+        // Tampilkan container dropdown
+        matchSelectorContainer.style.display = 'block';
+        showSetupStatus("Daftar pertandingan berhasil dimuat! Silakan pilih pertandingan.", "success");
+      } else {
+        showSetupStatus("Tidak ada pertandingan yang ditemukan pada turnamen ini.", "error");
+      }
     } else {
-      showSetupStatus(result.message || "Gagal mengunduh data pertandingan.", "error");
+      showSetupStatus(result.message || "Gagal mengunduh daftar pertandingan.", "error");
     }
   } catch (error) {
     console.error(error);
     showSetupStatus("Gagal terhubung ke server. Cek jaringan atau URL Anda.", "error");
   }
 });
+
+// Aksi ketika klik Mulai Operator Pertandingan
+if (btnStartOperator) {
+  btnStartOperator.addEventListener('click', async () => {
+    const matchId = matchSelect.value;
+    if (!matchId) {
+      showSetupStatus("Pilih pertandingan terlebih dahulu!", "error");
+      return;
+    }
+
+    const serverUrl = localStorage.getItem('temp_server_url');
+    const token = localStorage.getItem('temp_token');
+
+    if (!serverUrl || !token) {
+      showSetupStatus("Koneksi tidak valid. Silakan koneksikan ulang.", "error");
+      return;
+    }
+
+    showSetupStatus("Mengunduh detail data pertandingan terpilih...", "info");
+
+    try {
+      const response = await fetch(`${serverUrl}/api/desktop/download-match/${matchId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.status === 200 && result.status) {
+        matchData = result.data;
+        matchData.serverUrl = serverUrl;
+        matchData.token = token;
+        
+        // Simpan konfigurasi ke localStorage
+        localStorage.setItem('active_match_data', JSON.stringify(matchData));
+        localStorage.setItem('sync_queue', JSON.stringify([]));
+
+        initMatchPanel();
+        showSetupStatus("Download Berhasil! Memulai operator...", "success");
+        setTimeout(() => {
+          setupModal.style.display = 'none';
+          mainLayout.style.display = 'flex';
+        }, 1000);
+      } else {
+        showSetupStatus(result.message || "Gagal mengunduh data pertandingan.", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      showSetupStatus("Gagal mengunduh data pertandingan.", "error");
+    }
+  });
+}
 
 function showSetupStatus(msg, type) {
   setupStatus.textContent = msg;
@@ -370,6 +463,7 @@ function renderRoster() {
             <button class="btn-player-action kuning" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_kuning', 0)" title="Kartu Kuning">🟨</button>
             <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_merah', 0)" title="Kartu Merah">🟥</button>
             <button class="btn-player-action assist" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'assist', 0)" title="Assist">👟</button>
+            <button class="btn-player-action bd" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'own_goal', 1)" title="Gol Bunuh Diri">❌</button>
           `;
         }
       }
@@ -564,7 +658,10 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
     jenis: eventType,
     menit: elapsedMinutes,
     playerName: playerName,
-    teamType: team
+    teamType: team,
+    target_poin: eventType === 'own_goal' ? 'opponent' : 'self',
+    nilai: eventType === 'own_goal' || eventType === 'gol' ? 1 : (eventType.startsWith('poin_') ? parseInt(eventType.replace('poin_', '')) : 0),
+    periode: matchData.current_period || 'Babak 1'
   };
 
   if (!matchData.events) matchData.events = [];
@@ -572,14 +669,24 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
   localStorage.setItem('active_match_data', JSON.stringify(matchData));
 
   // Handle score increments
-  if (eventType === 'gol' || eventType.startsWith('poin_')) {
-    const points = weight || 1;
-    if (team === 'A') {
-      currentScoreA += points;
-      scoreADisplay.textContent = currentScoreA;
+  if (eventType === 'gol' || eventType === 'own_goal' || eventType.startsWith('poin_')) {
+    const points = eventType === 'own_goal' || eventType === 'gol' ? 1 : (eventType.startsWith('poin_') ? parseInt(eventType.replace('poin_', '')) : 0);
+    if (eventType === 'own_goal') {
+      if (team === 'A') {
+        currentScoreB += points;
+        scoreBDisplay.textContent = currentScoreB;
+      } else {
+        currentScoreA += points;
+        scoreADisplay.textContent = currentScoreA;
+      }
     } else {
-      currentScoreB += points;
-      scoreBDisplay.textContent = currentScoreB;
+      if (team === 'A') {
+        currentScoreA += points;
+        scoreADisplay.textContent = currentScoreA;
+      } else {
+        currentScoreB += points;
+        scoreBDisplay.textContent = currentScoreB;
+      }
     }
     saveMatchScoreLocally();
     broadcastState();
@@ -587,8 +694,8 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
     broadcastChannel.postMessage({
       type: 'GOAL_CELEBRATION',
       data: {
-        player: playerName,
-        teamName: teamName
+        player: eventType === 'own_goal' ? 'Gol Bunuh Diri' : playerName,
+        teamName: eventType === 'own_goal' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
       }
     });
 
@@ -657,7 +764,7 @@ window.recordAnonymousEvent = function(team) {
   } else {
     const isOwnGoal = confirm("Apakah ini Gol Bunuh Diri?");
     if (isOwnGoal) {
-      type = 'gol';
+      type = 'own_goal';
       weight = 1;
       label = 'Gol Bunuh Diri (Own Goal)';
     }
@@ -674,23 +781,46 @@ window.recordAnonymousEvent = function(team) {
     jenis: type,
     menit: elapsedMinutes,
     playerName: label,
-    teamType: team
+    teamType: team,
+    target_poin: type === 'own_goal' ? 'opponent' : 'self',
+    nilai: weight,
+    periode: matchData.current_period || 'Babak 1'
   };
 
   if (!matchData.events) matchData.events = [];
   matchData.events.unshift(eventPayload);
   
   // Add to score
-  if (team === 'A') {
-    currentScoreA += weight;
-    scoreADisplay.textContent = currentScoreA;
+  if (type === 'own_goal') {
+    if (team === 'A') {
+      currentScoreB += weight;
+      scoreBDisplay.textContent = currentScoreB;
+    } else {
+      currentScoreA += weight;
+      scoreADisplay.textContent = currentScoreA;
+    }
   } else {
-    currentScoreB += weight;
-    scoreBDisplay.textContent = currentScoreB;
+    if (team === 'A') {
+      currentScoreA += weight;
+      scoreADisplay.textContent = currentScoreA;
+    } else {
+      currentScoreB += weight;
+      scoreBDisplay.textContent = currentScoreB;
+    }
   }
   
   saveMatchScoreLocally();
   broadcastState();
+
+  if (type === 'gol' || type === 'own_goal' || type.startsWith('poin_')) {
+    broadcastChannel.postMessage({
+      type: 'GOAL_CELEBRATION',
+      data: {
+        player: label,
+        teamName: type === 'own_goal' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
+      }
+    });
+  }
 
   // Sync to server
   queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
@@ -716,6 +846,9 @@ function renderTimeline() {
     if (e.jenis === 'gol') {
       badgeClass = "gol";
       badgeText = "Gol";
+    } else if (e.jenis === 'own_goal') {
+      badgeClass = "kartu_merah";
+      badgeText = "Own Goal";
     } else if (e.jenis === 'kartu_kuning') {
       badgeClass = "kartu";
       badgeText = "Kuning";
@@ -766,17 +899,27 @@ window.deleteEventLocally = function(eventId) {
     const deletedEvent = matchData.events[eventIndex];
     
     // Kurangi skor otomatis jika gol/poin dihapus
-    if (deletedEvent.jenis === 'gol' || deletedEvent.jenis.startsWith('poin_')) {
+    if (deletedEvent.jenis === 'gol' || deletedEvent.jenis === 'own_goal' || deletedEvent.jenis.startsWith('poin_')) {
       let weight = 1;
       if (deletedEvent.jenis.startsWith('poin_')) {
         weight = parseInt(deletedEvent.jenis.split('_')[1]) || 1;
       }
-      if (deletedEvent.teamType === 'A' && currentScoreA > 0) {
-        currentScoreA = Math.max(0, currentScoreA - weight);
-        scoreADisplay.textContent = currentScoreA;
-      } else if (deletedEvent.teamType === 'B' && currentScoreB > 0) {
-        currentScoreB = Math.max(0, currentScoreB - weight);
-        scoreBDisplay.textContent = currentScoreB;
+      if (deletedEvent.jenis === 'own_goal') {
+        if (deletedEvent.teamType === 'A' && currentScoreB > 0) {
+          currentScoreB = Math.max(0, currentScoreB - weight);
+          scoreBDisplay.textContent = currentScoreB;
+        } else if (deletedEvent.teamType === 'B' && currentScoreA > 0) {
+          currentScoreA = Math.max(0, currentScoreA - weight);
+          scoreADisplay.textContent = currentScoreA;
+        }
+      } else {
+        if (deletedEvent.teamType === 'A' && currentScoreA > 0) {
+          currentScoreA = Math.max(0, currentScoreA - weight);
+          scoreADisplay.textContent = currentScoreA;
+        } else if (deletedEvent.teamType === 'B' && currentScoreB > 0) {
+          currentScoreB = Math.max(0, currentScoreB - weight);
+          scoreBDisplay.textContent = currentScoreB;
+        }
       }
       saveMatchScoreLocally();
       broadcastState();
