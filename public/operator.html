@@ -107,13 +107,25 @@
 
         <!-- TIMER & KONTROL UTAMA -->
         <section class="timer-section">
-          <div class="timer-display">
-            <span id="timer-minutes">00</span>:<span id="timer-seconds">00</span>
+          <div class="timer-adj-group">
+            <button id="btn-time-min-plus" class="btn-time-adj" title="Tambah 1 Menit">+1 Min</button>
+            <button id="btn-time-min-minus" class="btn-time-adj" title="Kurangi 1 Menit">-1 Min</button>
           </div>
-          <div class="timer-controls">
-            <button id="btn-timer-start" class="btn-success">Start</button>
-            <button id="btn-timer-stop" class="btn-warning" disabled>Pause</button>
-            <button id="btn-timer-reset" class="btn-reset">Reset</button>
+          
+          <div class="timer-display-wrapper">
+            <div class="timer-display">
+              <span id="timer-minutes">00</span>:<span id="timer-seconds">00</span>
+            </div>
+            <div class="timer-controls">
+              <button id="btn-timer-start" class="btn-success">Start</button>
+              <button id="btn-timer-stop" class="btn-warning" disabled>Pause</button>
+              <button id="btn-timer-reset" class="btn-reset">Reset</button>
+            </div>
+          </div>
+          
+          <div class="timer-adj-group">
+            <button id="btn-time-sec-plus" class="btn-time-adj" title="Tambah 1 Detik">+1 Detik</button>
+            <button id="btn-time-sec-minus" class="btn-time-adj" title="Kurangi 1 Detik">-1 Detik</button>
           </div>
         </section>
 
@@ -122,60 +134,64 @@
           
           <!-- TIM A ACTIONS -->
           <div class="action-card team-card-a">
-            <h3>Update Skor & Event - Tim A</h3>
-            <div class="btn-group-score">
-              <button id="btn-score-a-up" class="btn-score-up">+1 GOAL/POINT</button>
-              <button id="btn-score-a-down" class="btn-score-down">-1</button>
+            <div class="card-title-row">
+              <h3 id="team-title-a">Tim A</h3>
+              <div class="btn-group-score">
+                <button id="btn-score-a-up" class="btn-score-up" title="Tambah Skor">+1</button>
+                <button id="btn-score-a-down" class="btn-score-down" title="Kurangi Skor">-1</button>
+              </div>
             </div>
             
             <hr>
             
-            <h4>Catat Kejadian Khusus (Gol/Kartu)</h4>
-            <div class="form-group">
-              <label>Pemain</label>
-              <select id="player-select-a">
-                <option value="">Pilih Pemain...</option>
-              </select>
+            <div class="roster-section">
+              <h4>🏃 Pemain di Lapangan</h4>
+              <div class="roster-list" id="active-list-a">
+                <div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>
+              </div>
+              
+              <h4 style="margin-top: 1.5rem;">🛋️ Bangku Cadangan</h4>
+              <div class="roster-list bench-list" id="bench-list-a">
+                <!-- Pemain Cadangan A -->
+              </div>
             </div>
-            <div class="form-group">
-              <label>Jenis Event</label>
-              <select id="event-type-a">
-                <option value="gol">Gol / Point</option>
-                <option value="kartu_kuning">Kartu Kuning</option>
-                <option value="kartu_merah">Kartu Merah</option>
-                <option value="assist">Assist</option>
-              </select>
+            
+            <div class="p-2 border-top" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+              <button type="button" class="btn-player-sub" id="btn-anon-event-a" style="font-size: 0.8rem; width: 100%;">
+                ⭐ Event Tanpa Pemain / Bunuh Diri
+              </button>
             </div>
-            <button id="btn-submit-event-a" class="btn-action-submit">Simpan Event Tim A</button>
           </div>
 
           <!-- TIM B ACTIONS -->
           <div class="action-card team-card-b">
-            <h3>Update Skor & Event - Tim B</h3>
-            <div class="btn-group-score">
-              <button id="btn-score-b-up" class="btn-score-up">+1 GOAL/POINT</button>
-              <button id="btn-score-b-down" class="btn-score-down">-1</button>
+            <div class="card-title-row">
+              <h3 id="team-title-b">Tim B</h3>
+              <div class="btn-group-score">
+                <button id="btn-score-b-up" class="btn-score-up" title="Tambah Skor">+1</button>
+                <button id="btn-score-b-down" class="btn-score-down" title="Kurangi Skor">-1</button>
+              </div>
             </div>
             
             <hr>
             
-            <h4>Catat Kejadian Khusus (Gol/Kartu)</h4>
-            <div class="form-group">
-              <label>Pemain</label>
-              <select id="player-select-b">
-                <option value="">Pilih Pemain...</option>
-              </select>
+            <div class="roster-section">
+              <h4>🏃 Pemain di Lapangan</h4>
+              <div class="roster-list" id="active-list-b">
+                <div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>
+              </div>
+              
+              <h4 style="margin-top: 1.5rem;">🛋️ Bangku Cadangan</h4>
+              <div class="roster-list bench-list" id="bench-list-b">
+                <!-- Pemain Cadangan B -->
+              </div>
             </div>
-            <div class="form-group">
-              <label>Jenis Event</label>
-              <select id="event-type-b">
-                <option value="gol">Gol / Point</option>
-                <option value="kartu_kuning">Kartu Kuning</option>
-                <option value="kartu_merah">Kartu Merah</option>
-                <option value="assist">Assist</option>
-              </select>
+            
+            <div class="p-2 border-top" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+              <button type="button" class="btn-player-sub" id="btn-anon-event-b" style="font-size: 0.8rem; width: 100%;">
+                ⭐ Event Tanpa Pemain / Bunuh Diri
+              </button>
             </div>
-            <button id="btn-submit-event-b" class="btn-action-submit">Simpan Event Tim B</button>
           </div>
 
         </section>

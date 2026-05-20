@@ -69,6 +69,5 @@ function triggerGoalCelebration(data) {
 // Apabila layar videotron dibuka belakangan, ia meminta state terakhir dari operator
 window.addEventListener('load', () => {
   // Broadcast request ke operator agar dikirimkan state terkini
-  // Operator akan memicu broadcastState() saat menerima trigger apa saja jika didesain, 
-  // atau saat operator berjalan ia mengirim data berkala.
+  broadcastChannel.postMessage({ type: 'REQUEST_STATE' });
 });

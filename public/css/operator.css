@@ -462,24 +462,196 @@ button {
   margin-bottom: 1rem;
 }
 
-.btn-action-submit {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
+/* TIMER ADJUSTMENTS */
+.timer-adj-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-time-adj {
+  padding: 6px 12px;
   background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 0.9rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 65px;
+  text-align: center;
 }
 
-.team-card-a .btn-action-submit:hover {
-  background: #0066ff;
-  border-color: #0066ff;
+.btn-time-adj:hover {
+  background: rgba(0, 210, 255, 0.15);
+  border-color: #00d2ff;
+  color: #00d2ff;
 }
 
-.team-card-b .btn-action-submit:hover {
-  background: #ff6b6b;
-  border-color: #ff6b6b;
+.timer-display-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ROSTER SECTION & STYLES */
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card-title-row h3 {
+  margin-bottom: 0 !important;
+}
+
+.roster-section h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #a4b0be;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+.roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 1rem;
+}
+
+.roster-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.roster-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.roster-empty-message {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8rem;
+  font-style: italic;
+  text-align: center;
+  padding: 10px 0;
+  border: 1px dashed rgba(255,255,255,0.05);
+  border-radius: 6px;
+}
+
+.player-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(13, 15, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.player-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 60%;
+}
+
+.player-number {
+  font-weight: 700;
+  color: #a4b0be;
+  min-width: 20px;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-player-action {
+  padding: 3px 6px;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: 5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-player-action.gol {
+  background: rgba(46, 213, 115, 0.15);
+  color: #2ed573;
+}
+
+.btn-player-action.gol:hover {
+  background: #2ed573;
+  color: #fff;
+}
+
+.btn-player-action.kuning {
+  background: rgba(255, 218, 121, 0.15);
+  color: #ffa502;
+}
+
+.btn-player-action.kuning:hover {
+  background: #ffa502;
+  color: #fff;
+}
+
+.btn-player-action.merah {
+  background: rgba(255, 71, 87, 0.15);
+  color: #ff4757;
+}
+
+.btn-player-action.merah:hover {
+  background: #ff4757;
+  color: #fff;
+}
+
+.btn-player-action.assist {
+  background: rgba(0, 210, 255, 0.15);
+  color: #00d2ff;
+}
+
+.btn-player-action.assist:hover {
+  background: #00d2ff;
+  color: #0d0f1a;
+}
+
+.btn-player-sub {
+  background: transparent;
+  color: #a4b0be;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-player-sub:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 /* TIMELINE SECTION */

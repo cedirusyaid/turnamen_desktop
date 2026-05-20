@@ -20,6 +20,13 @@ let isOnline = false;
 // Broadcast Channel untuk sinkronisasi ke layar kedua (Videotron)
 const broadcastChannel = new BroadcastChannel('live_score_channel');
 
+// Dengarkan request state dari Videotron (jika layar videotron dibuka belakangan)
+broadcastChannel.onmessage = (event) => {
+  if (event.data && event.data.type === 'REQUEST_STATE') {
+    broadcastState();
+  }
+};
+
 // DOM ELEMENTS - SETUP
 const setupModal = document.getElementById('setup-modal');
 const serverUrlInput = document.getElementById('server-url');
@@ -62,13 +69,18 @@ const scoreADown = document.getElementById('btn-score-a-down');
 const scoreBUp = document.getElementById('btn-score-b-up');
 const scoreBDown = document.getElementById('btn-score-b-down');
 
-const playerSelectA = document.getElementById('player-select-a');
-const eventTypeA = document.getElementById('event-type-a');
-const btnSubmitEventA = document.getElementById('btn-submit-event-a');
+const btnTimeMinPlus = document.getElementById('btn-time-min-plus');
+const btnTimeMinMinus = document.getElementById('btn-time-min-minus');
+const btnTimeSecPlus = document.getElementById('btn-time-sec-plus');
+const btnTimeSecMinus = document.getElementById('btn-time-sec-minus');
 
-const playerSelectB = document.getElementById('player-select-b');
-const eventTypeB = document.getElementById('event-type-b');
-const btnSubmitEventB = document.getElementById('btn-submit-event-b');
+const activeListA = document.getElementById('active-list-a');
+const benchListA = document.getElementById('bench-list-a');
+const activeListB = document.getElementById('active-list-b');
+const benchListB = document.getElementById('bench-list-b');
+
+const btnAnonEventA = document.getElementById('btn-anon-event-a');
+const btnAnonEventB = document.getElementById('btn-anon-event-b');
 
 const timelineList = document.getElementById('timeline-list');
 
@@ -250,8 +262,8 @@ function initMatchPanel() {
   scoreADisplay.textContent = currentScoreA;
   scoreBDisplay.textContent = currentScoreB;
 
-  // Isi dropdown pemain
-  populatePlayers();
+  // Pulihkan status roster pemain dari event history
+  restoreRosterStatus();
 
   // Load sync queue dari storage
   const savedQueue = localStorage.getItem('sync_queue');
@@ -265,22 +277,97 @@ function initMatchPanel() {
   broadcastState();
 }
 
-function populatePlayers() {
-  // Pemain Tim A
-  playerSelectA.innerHTML = '<option value="">Pilih Pemain...</option>';
-  if (matchData.players_a) {
-    matchData.players_a.forEach(p => {
-      playerSelectA.innerHTML += `<option value="${p.id_personil}">${p.nama} (${p.nomor_punggung || '-'})</option>`;
-    });
-  }
+function restoreRosterStatus() {
+  if (matchData.players_a) matchData.players_a.forEach(p => p.status = 'bench');
+  if (matchData.players_b) matchData.players_b.forEach(p => p.status = 'bench');
 
-  // Pemain Tim B
-  playerSelectB.innerHTML = '<option value="">Pilih Pemain...</option>';
-  if (matchData.players_b) {
-    matchData.players_b.forEach(p => {
-      playerSelectB.innerHTML += `<option value="${p.id_personil}">${p.nama} (${p.nomor_punggung || '-'})</option>`;
+  if (matchData.events && matchData.events.length > 0) {
+    const eventsChronological = [...matchData.events].reverse();
+    eventsChronological.forEach(e => {
+      const team = e.teamType;
+      const playerList = team === 'A' ? matchData.players_a : matchData.players_b;
+      if (!playerList) return;
+      const player = playerList.find(p => p.id_personil == e.id_personil);
+      if (player) {
+        if (e.jenis === 'starter' || e.jenis === 'sub_in') {
+          player.status = 'active';
+        } else if (e.jenis === 'sub_out') {
+          player.status = 'bench';
+        }
+      }
     });
   }
+  renderRoster();
+}
+
+function renderRoster() {
+  if (!matchData) return;
+  const isBasket = matchData.cabor_nama.toLowerCase().includes('basket') || matchData.id_cabor == 2;
+
+  // Render untuk tim A dan B
+  ['A', 'B'].forEach(team => {
+    const activeList = team === 'A' ? activeListA : activeListB;
+    const benchList = team === 'A' ? benchListA : benchListB;
+    const players = team === 'A' ? matchData.players_a : matchData.players_b;
+
+    activeList.innerHTML = '';
+    benchList.innerHTML = '';
+
+    if (!players || players.length === 0) {
+      benchList.innerHTML = '<div class="roster-empty-message">Pemain belum didaftarkan</div>';
+      return;
+    }
+
+    let activeCount = 0;
+
+    players.forEach(p => {
+      let actionButtons = '';
+      if (p.status === 'active') {
+        if (isBasket) {
+          actionButtons = `
+            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_1', 1)" title="Free Throw (+1)">1P</button>
+            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_2', 2)" title="2 Point (+2)">2P</button>
+            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_3', 3)" title="3 Point (+3)">3P</button>
+            <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'foul', 0)" title="Foul">F</button>
+          `;
+        } else {
+          actionButtons = `
+            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'gol', 1)" title="Gol">⚽</button>
+            <button class="btn-player-action kuning" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_kuning', 0)" title="Kartu Kuning">🟨</button>
+            <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_merah', 0)" title="Kartu Merah">🟥</button>
+            <button class="btn-player-action assist" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'assist', 0)" title="Assist">👟</button>
+          `;
+        }
+      }
+
+      const subBtn = p.status === 'active' 
+        ? `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'bench')" title="Tarik ke Cadangan">⬇️ Out</button>`
+        : `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'active')" title="Masukkan ke Lapangan">⬆️ In</button>`;
+
+      const playerRowHtml = `
+        <div class="player-row">
+          <div class="player-info">
+            <span class="player-number">#${p.nomor_punggung || '-'}</span>
+            <span class="player-name" title="${p.nama}">${p.nama}</span>
+          </div>
+          <div class="player-actions">
+            ${p.status === 'active' ? actionButtons + subBtn : subBtn}
+          </div>
+        </div>
+      `;
+
+      if (p.status === 'active') {
+        activeList.insertAdjacentHTML('beforeend', playerRowHtml);
+        activeCount++;
+      } else {
+        benchList.insertAdjacentHTML('beforeend', playerRowHtml);
+      }
+    });
+
+    if (activeCount === 0) {
+      activeList.innerHTML = '<div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>';
+    }
+  });
 }
 
 // 6. TIMER LOGIK
@@ -393,27 +480,46 @@ function saveMatchScoreLocally() {
   localStorage.setItem('active_match_data', JSON.stringify(matchData));
 }
 
-// 9. SUBMIT EVENT (GOL/KARTU)
-btnSubmitEventA.addEventListener('click', () => {
-  submitEvent('A', playerSelectA, eventTypeA);
+// 9. EVENT REGISTRATION (ROSTER & TIMER ADJUSTMENTS)
+btnTimeMinPlus.addEventListener('click', () => {
+  timerSeconds += 60;
+  updateTimerDisplay();
+  broadcastState();
 });
 
-btnSubmitEventB.addEventListener('click', () => {
-  submitEvent('B', playerSelectB, eventTypeB);
+btnTimeMinMinus.addEventListener('click', () => {
+  timerSeconds = Math.max(0, timerSeconds - 60);
+  updateTimerDisplay();
+  broadcastState();
 });
 
-function submitEvent(team, selectElem, typeElem) {
-  const personilId = selectElem.value;
-  const eventType = typeElem.value;
+btnTimeSecPlus.addEventListener('click', () => {
+  timerSeconds += 1;
+  updateTimerDisplay();
+  broadcastState();
+});
 
-  if (!personilId) {
-    alert("Harap pilih pemain terlebih dahulu!");
-    return;
-  }
+btnTimeSecMinus.addEventListener('click', () => {
+  timerSeconds = Math.max(0, timerSeconds - 1);
+  updateTimerDisplay();
+  broadcastState();
+});
 
-  const selectedText = selectElem.options[selectElem.selectedIndex].text;
+btnAnonEventA.addEventListener('click', () => {
+  recordAnonymousEvent('A');
+});
+
+btnAnonEventB.addEventListener('click', () => {
+  recordAnonymousEvent('B');
+});
+
+window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
   const teamName = team === 'A' ? matchData.team_a_nama : matchData.team_b_nama;
   const elapsedMinutes = Math.floor(timerSeconds / 60);
+
+  const players = team === 'A' ? matchData.players_a : matchData.players_b;
+  const player = players.find(p => p.id_personil == personilId);
+  const playerName = player ? player.nama : 'Pemain';
 
   const eventPayload = {
     id_event: generateUUID(),
@@ -422,25 +528,22 @@ function submitEvent(team, selectElem, typeElem) {
     id_team: team === 'A' ? matchData.id_team_a : matchData.id_team_b,
     jenis: eventType,
     menit: elapsedMinutes,
-    playerName: selectedText,
+    playerName: playerName,
     teamType: team
   };
 
-  // Tambahkan ke log timeline lokal
   if (!matchData.events) matchData.events = [];
   matchData.events.unshift(eventPayload);
   localStorage.setItem('active_match_data', JSON.stringify(matchData));
-  
-  renderTimeline();
 
-  // Jika kejadian berupa gol, picu animasi selebrasi di Videotron
-  if (eventType === 'gol') {
-    // Tambah skor otomatis jika gol dicatat
+  // Handle score increments
+  if (eventType === 'gol' || eventType.startsWith('poin_')) {
+    const points = weight || 1;
     if (team === 'A') {
-      currentScoreA++;
+      currentScoreA += points;
       scoreADisplay.textContent = currentScoreA;
     } else {
-      currentScoreB++;
+      currentScoreB += points;
       scoreBDisplay.textContent = currentScoreB;
     }
     saveMatchScoreLocally();
@@ -449,21 +552,117 @@ function submitEvent(team, selectElem, typeElem) {
     broadcastChannel.postMessage({
       type: 'GOAL_CELEBRATION',
       data: {
-        player: selectedText,
+        player: playerName,
         teamName: teamName
       }
     });
 
-    // Kirim sinkronisasi skor dan event
     queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
   }
 
-  // Queue event ke server
   queueSyncAction('/api/desktop/add-event', eventPayload);
 
-  // Reset dropdown
-  selectElem.value = "";
-}
+  renderTimeline();
+};
+
+window.togglePlayerStatus = function(team, personilId, newStatus) {
+  const players = team === 'A' ? matchData.players_a : matchData.players_b;
+  const player = players.find(p => p.id_personil == personilId);
+  if (!player) return;
+
+  player.status = newStatus;
+  
+  // Create starter / sub event payload
+  let eventType = newStatus === 'active' ? 'sub_in' : 'sub_out';
+  if (newStatus === 'active' && timerSeconds <= 0) {
+    eventType = 'starter';
+  }
+
+  const teamId = team === 'A' ? matchData.id_team_a : matchData.id_team_b;
+  const elapsedMinutes = Math.floor(timerSeconds / 60);
+
+  const eventPayload = {
+    id_event: generateUUID(),
+    id_jadwal: matchData.id_jadwal,
+    id_personil: personilId,
+    id_team: teamId,
+    jenis: eventType,
+    menit: elapsedMinutes,
+    playerName: player.nama,
+    teamType: team
+  };
+
+  if (!matchData.events) matchData.events = [];
+  matchData.events.unshift(eventPayload);
+  localStorage.setItem('active_match_data', JSON.stringify(matchData));
+
+  renderRoster();
+  renderTimeline();
+  broadcastState();
+
+  queueSyncAction('/api/desktop/add-event', eventPayload);
+};
+
+window.recordAnonymousEvent = function(team) {
+  const isBasket = matchData.cabor_nama.toLowerCase().includes('basket') || matchData.id_cabor == 2;
+  let type = 'gol';
+  let weight = 1;
+  let label = 'Gol';
+  
+  if (isBasket) {
+    const pointsStr = prompt("Masukkan jumlah poin (1, 2, atau 3):", "2");
+    if (!pointsStr) return;
+    weight = parseInt(pointsStr);
+    if (![1, 2, 3].includes(weight)) {
+      alert("Poin tidak valid!");
+      return;
+    }
+    type = 'poin_' + weight;
+    label = weight + ' Poin';
+  } else {
+    const isOwnGoal = confirm("Apakah ini Gol Bunuh Diri?");
+    if (isOwnGoal) {
+      type = 'gol';
+      weight = 1;
+      label = 'Gol Bunuh Diri (Own Goal)';
+    }
+  }
+
+  const teamName = team === 'A' ? matchData.team_a_nama : matchData.team_b_nama;
+  const elapsedMinutes = Math.floor(timerSeconds / 60);
+
+  const eventPayload = {
+    id_event: generateUUID(),
+    id_jadwal: matchData.id_jadwal,
+    id_personil: 0, // 0 for anonymous
+    id_team: team === 'A' ? matchData.id_team_a : matchData.id_team_b,
+    jenis: type,
+    menit: elapsedMinutes,
+    playerName: label,
+    teamType: team
+  };
+
+  if (!matchData.events) matchData.events = [];
+  matchData.events.unshift(eventPayload);
+  
+  // Add to score
+  if (team === 'A') {
+    currentScoreA += weight;
+    scoreADisplay.textContent = currentScoreA;
+  } else {
+    currentScoreB += weight;
+    scoreBDisplay.textContent = currentScoreB;
+  }
+  
+  saveMatchScoreLocally();
+  broadcastState();
+
+  // Sync to server
+  queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
+  queueSyncAction('/api/desktop/add-event', eventPayload);
+
+  renderTimeline();
+};
 
 function renderTimeline() {
   timelineList.innerHTML = "";
@@ -477,9 +676,12 @@ function renderTimeline() {
     item.className = "timeline-item";
     
     let badgeClass = "gol";
-    let badgeText = "Gol";
+    let badgeText = "Event";
     
-    if (e.jenis === 'kartu_kuning') {
+    if (e.jenis === 'gol') {
+      badgeClass = "gol";
+      badgeText = "Gol";
+    } else if (e.jenis === 'kartu_kuning') {
       badgeClass = "kartu";
       badgeText = "Kuning";
     } else if (e.jenis === 'kartu_merah') {
@@ -488,6 +690,27 @@ function renderTimeline() {
     } else if (e.jenis === 'assist') {
       badgeClass = "gol";
       badgeText = "Assist";
+    } else if (e.jenis === 'poin_1') {
+      badgeClass = "gol";
+      badgeText = "1 Poin";
+    } else if (e.jenis === 'poin_2') {
+      badgeClass = "gol";
+      badgeText = "2 Poin";
+    } else if (e.jenis === 'poin_3') {
+      badgeClass = "gol";
+      badgeText = "3 Poin";
+    } else if (e.jenis === 'foul') {
+      badgeClass = "kartu_merah";
+      badgeText = "Foul";
+    } else if (e.jenis === 'starter') {
+      badgeClass = "gol";
+      badgeText = "Starter";
+    } else if (e.jenis === 'sub_in') {
+      badgeClass = "gol";
+      badgeText = "Masuk";
+    } else if (e.jenis === 'sub_out') {
+      badgeClass = "kartu_merah";
+      badgeText = "Keluar";
     }
 
     item.innerHTML = `
@@ -500,7 +723,6 @@ function renderTimeline() {
   });
 }
 
-// Expose deleteEvent ke scope global window agar onclick bisa diakses
 window.deleteEventLocally = function(eventId) {
   if (!confirm("Hapus kejadian ini?")) return;
 
@@ -508,13 +730,17 @@ window.deleteEventLocally = function(eventId) {
   if (eventIndex > -1) {
     const deletedEvent = matchData.events[eventIndex];
     
-    // Kurangi skor otomatis jika gol dihapus
-    if (deletedEvent.jenis === 'gol') {
+    // Kurangi skor otomatis jika gol/poin dihapus
+    if (deletedEvent.jenis === 'gol' || deletedEvent.jenis.startsWith('poin_')) {
+      let weight = 1;
+      if (deletedEvent.jenis.startsWith('poin_')) {
+        weight = parseInt(deletedEvent.jenis.split('_')[1]) || 1;
+      }
       if (deletedEvent.teamType === 'A' && currentScoreA > 0) {
-        currentScoreA--;
+        currentScoreA = Math.max(0, currentScoreA - weight);
         scoreADisplay.textContent = currentScoreA;
       } else if (deletedEvent.teamType === 'B' && currentScoreB > 0) {
-        currentScoreB--;
+        currentScoreB = Math.max(0, currentScoreB - weight);
         scoreBDisplay.textContent = currentScoreB;
       }
       saveMatchScoreLocally();
@@ -524,6 +750,14 @@ window.deleteEventLocally = function(eventId) {
 
     matchData.events.splice(eventIndex, 1);
     localStorage.setItem('active_match_data', JSON.stringify(matchData));
+
+    // Replay status pemain jika event yang dihapus adalah starter / sub
+    if (['starter', 'sub_in', 'sub_out'].includes(deletedEvent.jenis)) {
+      restoreRosterStatus();
+    } else {
+      renderRoster();
+    }
+    
     renderTimeline();
 
     // Kirim perintah hapus ke server queue
