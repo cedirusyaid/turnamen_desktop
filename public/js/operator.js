@@ -481,7 +481,7 @@ function restoreRosterStatus() {
 
 function renderRoster() {
   if (!matchData) return;
-  const isBasket = matchData.cabor_nama.toLowerCase().includes('basket') || matchData.id_cabor == 2;
+  const isBasket = matchData.cabor_nama.toLowerCase().includes('basket') || matchData.id_cabor == 3;
 
   // Render untuk tim A dan B
   ['A', 'B'].forEach(team => {
@@ -502,21 +502,42 @@ function renderRoster() {
     players.forEach(p => {
       let actionButtons = '';
       if (p.status === 'active') {
-        if (isBasket) {
-          actionButtons = `
-            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_1', 1)" title="Free Throw (+1)">1P</button>
-            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_2', 2)" title="2 Point (+2)">2P</button>
-            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_3', 3)" title="3 Point (+3)">3P</button>
-            <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'foul', 0)" title="Foul">F</button>
-          `;
+        if (matchData.cabor_events && matchData.cabor_events.length > 0) {
+          matchData.cabor_events.forEach(ev => {
+            let btnClass = 'gol';
+            const code = ev.kode_event.toLowerCase();
+            if (code.includes('kuning')) {
+              btnClass = 'kuning';
+            } else if (code.includes('merah') || code.includes('foul') || code.includes('error')) {
+              btnClass = 'merah';
+            } else if (code.includes('assist')) {
+              btnClass = 'assist';
+            } else if (code.includes('own_goal') || code.includes('bd')) {
+              btnClass = 'bd';
+            } else if (code.includes('smash') || code.includes('netting')) {
+              btnClass = 'assist';
+            }
+            actionButtons += `
+              <button class="btn-player-action ${btnClass}" onclick="recordPlayerEvent('${team}', ${p.id_personil}, '${ev.kode_event.toLowerCase()}', ${ev.bobot_skor})" title="${ev.nama_event}">${ev.ikon}</button>
+            `;
+          });
         } else {
-          actionButtons = `
-            <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'gol', 1)" title="Gol">⚽</button>
-            <button class="btn-player-action kuning" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_kuning', 0)" title="Kartu Kuning">🟨</button>
-            <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_merah', 0)" title="Kartu Merah">🟥</button>
-            <button class="btn-player-action assist" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'assist', 0)" title="Assist">👟</button>
-            <button class="btn-player-action bd" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'own_goal', 1)" title="Gol Bunuh Diri">❌</button>
-          `;
+          if (isBasket) {
+            actionButtons = `
+              <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_1', 1)" title="Free Throw (+1)">1P</button>
+              <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_2', 2)" title="2 Point (+2)">2P</button>
+              <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_3', 3)" title="3 Point (+3)">3P</button>
+              <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'foul', 0)" title="Foul">F</button>
+            `;
+          } else {
+            actionButtons = `
+              <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'gol', 1)" title="Gol">⚽</button>
+              <button class="btn-player-action kuning" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_kuning', 0)" title="Kartu Kuning">🟨</button>
+              <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_merah', 0)" title="Kartu Merah">🟥</button>
+              <button class="btn-player-action assist" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'assist', 0)" title="Assist">👟</button>
+              <button class="btn-player-action bd" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'own_goal', 1)" title="Gol Bunuh Diri">❌</button>
+            `;
+          }
         }
       }
 
@@ -703,6 +724,21 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
   const player = players.find(p => p.id_personil == personilId);
   const playerName = player ? player.nama : 'Pemain';
 
+  let targetPoin = 'self';
+  let points = weight;
+
+  if (matchData.cabor_events && matchData.cabor_events.length > 0) {
+    const foundEvent = matchData.cabor_events.find(ev => ev.kode_event.toLowerCase() === eventType.toLowerCase());
+    if (foundEvent) {
+      targetPoin = foundEvent.target_poin || 'self';
+      points = parseInt(foundEvent.bobot_skor) || 0;
+    }
+  } else {
+    // Fallback legacy logic
+    targetPoin = eventType === 'own_goal' ? 'opponent' : 'self';
+    points = eventType === 'own_goal' || eventType === 'gol' ? 1 : (eventType.startsWith('poin_') ? parseInt(eventType.replace('poin_', '')) : 0);
+  }
+
   const eventPayload = {
     id_event: generateUUID(),
     id_jadwal: matchData.id_jadwal,
@@ -712,8 +748,8 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
     menit: elapsedMinutes,
     playerName: playerName,
     teamType: team,
-    target_poin: eventType === 'own_goal' ? 'opponent' : 'self',
-    nilai: eventType === 'own_goal' || eventType === 'gol' ? 1 : (eventType.startsWith('poin_') ? parseInt(eventType.replace('poin_', '')) : 0),
+    target_poin: targetPoin,
+    nilai: points,
     periode: matchData.current_period || 'Babak 1'
   };
 
@@ -722,9 +758,8 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
   localStorage.setItem('active_match_data', JSON.stringify(matchData));
 
   // Handle score increments
-  if (eventType === 'gol' || eventType === 'own_goal' || eventType.startsWith('poin_')) {
-    const points = eventType === 'own_goal' || eventType === 'gol' ? 1 : (eventType.startsWith('poin_') ? parseInt(eventType.replace('poin_', '')) : 0);
-    if (eventType === 'own_goal') {
+  if (points > 0) {
+    if (targetPoin === 'opponent') {
       if (team === 'A') {
         currentScoreB += points;
         scoreBDisplay.textContent = currentScoreB;
@@ -748,7 +783,7 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
       type: 'GOAL_CELEBRATION',
       data: {
         player: eventType === 'own_goal' ? 'Gol Bunuh Diri' : playerName,
-        teamName: eventType === 'own_goal' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
+        teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
       }
     });
 
@@ -951,13 +986,11 @@ window.deleteEventLocally = function(eventId) {
   if (eventIndex > -1) {
     const deletedEvent = matchData.events[eventIndex];
     
-    // Kurangi skor otomatis jika gol/poin dihapus
-    if (deletedEvent.jenis === 'gol' || deletedEvent.jenis === 'own_goal' || deletedEvent.jenis.startsWith('poin_')) {
-      let weight = 1;
-      if (deletedEvent.jenis.startsWith('poin_')) {
-        weight = parseInt(deletedEvent.jenis.split('_')[1]) || 1;
-      }
-      if (deletedEvent.jenis === 'own_goal') {
+    // Kurangi skor otomatis jika event bernilai poin dihapus
+    if (deletedEvent.nilai && deletedEvent.nilai > 0) {
+      const weight = deletedEvent.nilai;
+      const targetPoin = deletedEvent.target_poin || 'self';
+      if (targetPoin === 'opponent') {
         if (deletedEvent.teamType === 'A' && currentScoreB > 0) {
           currentScoreB = Math.max(0, currentScoreB - weight);
           scoreBDisplay.textContent = currentScoreB;
