@@ -87,6 +87,14 @@ function updateScoreboardUI(data) {
   sbScoreB.textContent = data.scoreB;
   sbTimer.textContent = data.timerText;
 
+  // Auto-hide Timer Footer for set-based sports
+  const footerTimer = document.querySelector('.sb-footer');
+  if (data.tipe_skor === 'set') {
+    if (footerTimer) footerTimer.style.display = 'none';
+  } else {
+    if (footerTimer) footerTimer.style.display = 'flex';
+  }
+
   if (data.hasFoul) {
     if (foulBoxA) foulBoxA.style.display = 'inline-block';
     if (foulBoxB) foulBoxB.style.display = 'inline-block';
@@ -112,8 +120,13 @@ function triggerGoalCelebration(data) {
     clearTimeout(overlayTimeout);
   }
 
-  overlayTitle.textContent = "GOAL!!!";
-  overlayPlayer.textContent = data.player;
+  const isTimeOut = data.player === 'TIME OUT';
+  
+  overlayTitle.textContent = data.player || "GOAL!!!";
+  overlayTitle.style.color = isTimeOut ? '#ffa502' : '#2ed573';
+  overlayTitle.style.textShadow = isTimeOut ? '0 0 40px #ffa502' : '0 0 40px #2ed573';
+  
+  overlayPlayer.textContent = isTimeOut ? '' : data.player;
   overlayTeam.textContent = data.teamName;
 
   eventOverlay.classList.add('active');

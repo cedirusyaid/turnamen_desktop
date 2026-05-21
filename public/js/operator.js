@@ -17,6 +17,10 @@ let timerInterval = null;
 let syncQueue = [];
 let isOnline = false;
 
+// Timer Configuration
+let timerMode = 'up'; // 'up' or 'down'
+let timerDuration = 10 * 60; // Default 10 mins in seconds
+
 // Broadcast Channel untuk sinkronisasi ke layar kedua (Videotron)
 const broadcastChannel = new BroadcastChannel('live_score_channel');
 
@@ -254,6 +258,18 @@ function initMatchPanel() {
   scoreADisplay.textContent = currentScoreA;
   scoreBDisplay.textContent = currentScoreB;
 
+  // Init Timer Config
+  timerMode = matchData.timer_mode || 'up';
+  timerDuration = (parseInt(matchData.timer_duration) || 10) * 60;
+
+  // Auto-hide Timer for Set-based sports
+  const timerContainer = document.querySelector('.timer-section');
+  if (matchData.tipe_skor === 'set') {
+    if (timerContainer) timerContainer.style.display = 'none';
+  } else {
+    if (timerContainer) timerContainer.style.display = 'flex';
+  }
+
   // Init Foul UI
   const hasFoul = matchData.id_cabor == 2 || matchData.id_cabor == 3;
   if (hasFoul) {
@@ -462,8 +478,15 @@ function formatNum(num) {
 }
 
 function updateTimerDisplay() {
-  const min = Math.floor(timerSeconds / 60);
-  const sec = timerSeconds % 60;
+  let displaySeconds = timerSeconds;
+  
+  if (timerMode === 'down') {
+    displaySeconds = timerDuration - timerSeconds;
+    if (displaySeconds < 0) displaySeconds = 0;
+  }
+
+  const min = Math.floor(displaySeconds / 60);
+  const sec = displaySeconds % 60;
   timerMin.textContent = formatNum(min);
   timerSec.textContent = formatNum(sec);
 }
@@ -518,13 +541,21 @@ btnTimerReset.addEventListener('click', () => {
 
 // 7. FUNGSI BROADCAST KE VIDEOTRON
 function broadcastState() {
-  const min = Math.floor(timerSeconds / 60);
-  const sec = timerSeconds % 60;
+  let displaySeconds = timerSeconds;
+  
+  if (timerMode === 'down') {
+    displaySeconds = timerDuration - timerSeconds;
+    if (displaySeconds < 0) displaySeconds = 0;
+  }
+
+  const min = Math.floor(displaySeconds / 60);
+  const sec = displaySeconds % 60;
   
   broadcastChannel.postMessage({
     type: 'UPDATE_STATE',
     data: {
       cabor: matchData ? matchData.cabor_nama : 'CABOR',
+      tipe_skor: matchData ? matchData.tipe_skor : 'akumulasi',
       fase: matchData ? (matchData.fase ? `${matchData.kategori_nama} - ${matchData.fase}` : matchData.kategori_nama) : 'FASE',
       namaTurnamen: matchData ? matchData.nama_turnamen : 'TURNAMEN',
       teamAName: matchData ? matchData.team_a_nama : 'TEAM A',
@@ -752,7 +783,7 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
     }
   }
 
-  if (points > 0 || eventType === 'foul') {
+  if (weight > 0 || eventType === 'foul' || eventType === 'pause') {
     saveMatchScoreLocally();
     broadcastState();
 
@@ -762,6 +793,14 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
           data: {
             player: eventType === 'own_goal' ? 'Gol Bunuh Diri' : playerName,
             teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
+          }
+        });
+    } else if (eventType === 'pause') {
+        broadcastChannel.postMessage({
+          type: 'GOAL_CELEBRATION',
+          data: {
+            player: 'TIME OUT',
+            teamName: teamName
           }
         });
     }
@@ -993,7 +1032,7 @@ window.saveAnonymousEvent = function() {
     }
   }
 
-  if (weight > 0 || tipeEvent === 'FOUL') {
+  if (weight > 0 || tipeEvent === 'FOUL' || tipeEvent === 'PAUSE') {
     saveMatchScoreLocally();
     broadcastState();
 
@@ -1003,6 +1042,14 @@ window.saveAnonymousEvent = function() {
           data: {
             player: tipeEvent === 'OWN_GOAL' ? 'Gol Bunuh Diri' : label,
             teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
+          }
+        });
+    } else if (tipeEvent === 'PAUSE') {
+        broadcastChannel.postMessage({
+          type: 'GOAL_CELEBRATION',
+          data: {
+            player: 'TIME OUT',
+            teamName: teamName
           }
         });
     }
