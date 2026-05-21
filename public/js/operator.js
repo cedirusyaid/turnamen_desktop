@@ -74,6 +74,13 @@ const scoreADown = document.getElementById('btn-score-a-down');
 const scoreBUp = document.getElementById('btn-score-b-up');
 const scoreBDown = document.getElementById('btn-score-b-down');
 
+const foulSectionA = document.getElementById('foul-section-a');
+const foulCountA = document.getElementById('foul-count-a');
+const btnResetFoulA = document.getElementById('btn-reset-foul-a');
+const foulSectionB = document.getElementById('foul-section-b');
+const foulCountB = document.getElementById('foul-count-b');
+const btnResetFoulB = document.getElementById('btn-reset-foul-b');
+
 const btnTimeMinPlus = document.getElementById('btn-time-min-plus');
 const btnTimeMinMinus = document.getElementById('btn-time-min-minus');
 const btnTimeSecPlus = document.getElementById('btn-time-sec-plus');
@@ -246,6 +253,20 @@ function initMatchPanel() {
   currentScoreB = parseInt(matchData.skor_b || 0);
   scoreADisplay.textContent = currentScoreA;
   scoreBDisplay.textContent = currentScoreB;
+
+  // Init Foul UI
+  const hasFoul = matchData.id_cabor == 2 || matchData.id_cabor == 3;
+  if (hasFoul) {
+    foulSectionA.style.display = 'flex';
+    foulSectionB.style.display = 'flex';
+    foulCountA.textContent = parseInt(matchData.foul_a || 0);
+    foulCountB.textContent = parseInt(matchData.foul_b || 0);
+    if (parseInt(matchData.foul_a || 0) >= 5) foulCountA.style.color = '#ff4757'; else foulCountA.style.color = '#fff';
+    if (parseInt(matchData.foul_b || 0) >= 5) foulCountB.style.color = '#ff4757'; else foulCountB.style.color = '#fff';
+  } else {
+    foulSectionA.style.display = 'none';
+    foulSectionB.style.display = 'none';
+  }
 
   // Populate Period Dropdown
   if (selectPeriod) {
@@ -510,6 +531,9 @@ function broadcastState() {
       teamBName: matchData ? matchData.team_b_nama : 'TEAM B',
       scoreA: currentScoreA,
       scoreB: currentScoreB,
+      foulA: matchData ? (matchData.foul_a || 0) : 0,
+      foulB: matchData ? (matchData.foul_b || 0) : 0,
+      hasFoul: matchData ? (matchData.id_cabor == 2 || matchData.id_cabor == 3) : false,
       timerText: `${formatNum(min)}:${formatNum(sec)}`,
       currentPeriod: matchData ? matchData.current_period : 'Babak 1'
     }
@@ -550,6 +574,68 @@ scoreBDown.addEventListener('click', () => {
     saveMatchScoreLocally();
     broadcastState();
     queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
+  }
+});
+
+btnResetFoulA.addEventListener('click', () => {
+  if (confirm("Reset akumulasi foul Tim A menjadi 0?")) {
+    matchData.foul_a = 0;
+    foulCountA.textContent = 0;
+    foulCountA.style.color = '#fff';
+    saveMatchScoreLocally();
+    broadcastState();
+    
+    const eventPayload = {
+      id_event: generateUUID(),
+      id_jadwal: matchData.id_jadwal,
+      id_personil: 0,
+      id_team: matchData.id_team_a,
+      jenis: 'reset_foul',
+      menit: Math.floor(timerSeconds / 60),
+      playerName: 'Reset Foul',
+      teamType: 'A',
+      target_poin: 'none',
+      nilai: 0,
+      periode: matchData.current_period || 'Babak 1',
+      keterangan: 'Foul Reset'
+    };
+    if (!matchData.events) matchData.events = [];
+    matchData.events.unshift(eventPayload);
+    renderTimeline();
+    
+    queueSyncAction('/api/desktop/add-event', eventPayload);
+    queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB, foul_a: 0, foul_b: matchData.foul_b || 0 });
+  }
+});
+
+btnResetFoulB.addEventListener('click', () => {
+  if (confirm("Reset akumulasi foul Tim B menjadi 0?")) {
+    matchData.foul_b = 0;
+    foulCountB.textContent = 0;
+    foulCountB.style.color = '#fff';
+    saveMatchScoreLocally();
+    broadcastState();
+    
+    const eventPayload = {
+      id_event: generateUUID(),
+      id_jadwal: matchData.id_jadwal,
+      id_personil: 0,
+      id_team: matchData.id_team_b,
+      jenis: 'reset_foul',
+      menit: Math.floor(timerSeconds / 60),
+      playerName: 'Reset Foul',
+      teamType: 'B',
+      target_poin: 'none',
+      nilai: 0,
+      periode: matchData.current_period || 'Babak 1',
+      keterangan: 'Foul Reset'
+    };
+    if (!matchData.events) matchData.events = [];
+    matchData.events.unshift(eventPayload);
+    renderTimeline();
+    
+    queueSyncAction('/api/desktop/add-event', eventPayload);
+    queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB, foul_a: matchData.foul_a || 0, foul_b: 0 });
   }
 });
 
@@ -652,18 +738,35 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
         scoreBDisplay.textContent = currentScoreB;
       }
     }
+  }
+  
+  if (eventType === 'foul') {
+    if (team === 'A') {
+        matchData.foul_a = (parseInt(matchData.foul_a) || 0) + 1;
+        foulCountA.textContent = matchData.foul_a;
+        if (matchData.foul_a >= 5) foulCountA.style.color = '#ff4757';
+    } else {
+        matchData.foul_b = (parseInt(matchData.foul_b) || 0) + 1;
+        foulCountB.textContent = matchData.foul_b;
+        if (matchData.foul_b >= 5) foulCountB.style.color = '#ff4757';
+    }
+  }
+
+  if (points > 0 || eventType === 'foul') {
     saveMatchScoreLocally();
     broadcastState();
 
-    broadcastChannel.postMessage({
-      type: 'GOAL_CELEBRATION',
-      data: {
-        player: eventType === 'own_goal' ? 'Gol Bunuh Diri' : playerName,
-        teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
-      }
-    });
+    if (points > 0) {
+        broadcastChannel.postMessage({
+          type: 'GOAL_CELEBRATION',
+          data: {
+            player: eventType === 'own_goal' ? 'Gol Bunuh Diri' : playerName,
+            teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
+          }
+        });
+    }
 
-    queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
+    queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB, foul_a: matchData.foul_a || 0, foul_b: matchData.foul_b || 0 });
   }
 
   queueSyncAction('/api/desktop/add-event', eventPayload);
@@ -858,7 +961,6 @@ window.saveAnonymousEvent = function() {
   matchData.events.unshift(eventPayload);
   localStorage.setItem('active_match_data', JSON.stringify(matchData));
 
-  // Handle score increments
   if (weight > 0) {
     if (targetPoin === 'opponent') {
       if (team === 'A') {
@@ -877,18 +979,35 @@ window.saveAnonymousEvent = function() {
         scoreBDisplay.textContent = currentScoreB;
       }
     }
+  }
+
+  if (tipeEvent === 'FOUL') {
+    if (team === 'A') {
+        matchData.foul_a = (parseInt(matchData.foul_a) || 0) + 1;
+        foulCountA.textContent = matchData.foul_a;
+        if (matchData.foul_a >= 5) foulCountA.style.color = '#ff4757';
+    } else {
+        matchData.foul_b = (parseInt(matchData.foul_b) || 0) + 1;
+        foulCountB.textContent = matchData.foul_b;
+        if (matchData.foul_b >= 5) foulCountB.style.color = '#ff4757';
+    }
+  }
+
+  if (weight > 0 || tipeEvent === 'FOUL') {
     saveMatchScoreLocally();
     broadcastState();
 
-    broadcastChannel.postMessage({
-      type: 'GOAL_CELEBRATION',
-      data: {
-        player: tipeEvent === 'OWN_GOAL' ? 'Gol Bunuh Diri' : label,
-        teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
-      }
-    });
+    if (weight > 0) {
+        broadcastChannel.postMessage({
+          type: 'GOAL_CELEBRATION',
+          data: {
+            player: tipeEvent === 'OWN_GOAL' ? 'Gol Bunuh Diri' : label,
+            teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : teamName
+          }
+        });
+    }
 
-    queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
+    queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB, foul_a: matchData.foul_a || 0, foul_b: matchData.foul_b || 0 });
   }
 
   queueSyncAction('/api/desktop/add-event', eventPayload);

@@ -240,6 +240,30 @@ body {
   letter-spacing: 2px;
 }
 
+.foul-box {
+  background: rgba(0,0,0,0.5);
+  border: 2px solid #2d3748;
+  padding: 1vh 2vw;
+  border-radius: 10px;
+  display: inline-block;
+  margin-top: 2vh;
+  min-width: 15vw;
+}
+
+.foul-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 5vh;
+  font-weight: 700;
+}
+
+.foul-label {
+  font-size: 2vh;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: block;
+}
+
 /* ANIMATIONS */
 @keyframes blink {
   0%, 49% { opacity: 1; }

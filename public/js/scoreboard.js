@@ -13,6 +13,11 @@ const sbTimer = document.getElementById('sb-timer');
 const sbLogoA = document.getElementById('sb-logo-a');
 const sbLogoB = document.getElementById('sb-logo-b');
 
+const foulBoxA = document.getElementById('foul-box-a');
+const foulValA = document.getElementById('sb-foul-a');
+const foulBoxB = document.getElementById('foul-box-b');
+const foulValB = document.getElementById('sb-foul-b');
+
 const eventOverlay = document.getElementById('event-overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayPlayer = document.getElementById('overlay-player');
@@ -81,6 +86,23 @@ function updateScoreboardUI(data) {
   sbScoreA.textContent = data.scoreA;
   sbScoreB.textContent = data.scoreB;
   sbTimer.textContent = data.timerText;
+
+  if (data.hasFoul) {
+    if (foulBoxA) foulBoxA.style.display = 'inline-block';
+    if (foulBoxB) foulBoxB.style.display = 'inline-block';
+    
+    if (foulValA) {
+        foulValA.textContent = data.foulA;
+        foulValA.className = data.foulA >= 5 ? 'foul-val text-danger' : 'foul-val text-warning';
+    }
+    if (foulValB) {
+        foulValB.textContent = data.foulB;
+        foulValB.className = data.foulB >= 5 ? 'foul-val text-danger' : 'foul-val text-warning';
+    }
+  } else {
+    if (foulBoxA) foulBoxA.style.display = 'none';
+    if (foulBoxB) foulBoxB.style.display = 'none';
+  }
 }
 
 // 2. CELEBRATION EFFECT (GOL!)
