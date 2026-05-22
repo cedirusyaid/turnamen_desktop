@@ -510,7 +510,13 @@ btnTimerStart.addEventListener('click', () => {
   }, 1000);
 
   if (matchData && matchData.id_jadwal) {
-    queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, seconds: timerSeconds, is_running: 1 });
+    queueSyncAction('/api/desktop/update-timer', { 
+      id_jadwal: matchData.id_jadwal, 
+      seconds: timerSeconds, 
+      is_running: 1,
+      action: 'start',
+      current_period: matchData.current_period
+    });
   }
 });
 
@@ -572,7 +578,13 @@ btnTimerStop.addEventListener('click', () => {
   broadcastState();
 
   if (matchData && matchData.id_jadwal) {
-    queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, seconds: timerSeconds, is_running: 0 });
+    queueSyncAction('/api/desktop/update-timer', { 
+      id_jadwal: matchData.id_jadwal, 
+      seconds: timerSeconds, 
+      is_running: 0,
+      action: 'pause',
+      current_period: matchData.current_period
+    });
   }
 });
 
@@ -588,7 +600,13 @@ btnTimerReset.addEventListener('click', () => {
   broadcastState();
 
   if (matchData && matchData.id_jadwal) {
-    queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, seconds: timerSeconds, is_running: 0 });
+    queueSyncAction('/api/desktop/update-timer', { 
+      id_jadwal: matchData.id_jadwal, 
+      seconds: timerSeconds, 
+      is_running: 0,
+      action: 'reset',
+      current_period: matchData.current_period
+    });
   }
 });
 
