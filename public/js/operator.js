@@ -494,12 +494,18 @@ function updateTimerDisplay() {
 btnTimerStart.addEventListener('click', () => {
   if (timerInterval) return;
   
+  // Hentikan timeout jika sedang berjalan saat timer dimulai
+  if (timeoutEndTime) {
+    stopTimeout();
+  }
+
   btnTimerStart.disabled = true;
   btnTimerStop.disabled = false;
 
   timerInterval = setInterval(() => {
     timerSeconds++;
     updateTimerDisplay();
+    updateTimeoutDisplay();
     broadcastState();
   }, 1000);
 
@@ -507,6 +513,53 @@ btnTimerStart.addEventListener('click', () => {
     queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, seconds: timerSeconds, is_running: 1 });
   }
 });
+
+// Timer visual update (juga dipanggil saat timer berhenti/idle)
+setInterval(() => {
+  if (!timerInterval) {
+    updateTimerDisplay();
+    updateTimeoutDisplay();
+  }
+}, 1000);
+
+let timeoutEndTime = null;
+let timeoutBy = null;
+let serverTimeOffset = 0;
+
+function updateTimeoutDisplay() {
+  if (!timeoutEndTime) {
+    document.getElementById('timeout-active-overlay').style.display = 'none';
+    return;
+  }
+
+  const now = new Date().getTime() + serverTimeOffset;
+  const diff = Math.ceil((timeoutEndTime - now) / 1000);
+  
+  if (diff > 0) {
+    document.getElementById('timeout-active-overlay').style.display = 'flex';
+    document.getElementById('timeout-countdown-display').textContent = formatTime(diff);
+    
+    let label = "TIMEOUT";
+    let teamName = "KEDUA TIM";
+    if (timeoutBy) {
+      if (timeoutBy === 'A' || timeoutBy == matchData.id_team_a) teamName = matchData.team_a_nama;
+      else if (timeoutBy === 'B' || timeoutBy == matchData.id_team_b) teamName = matchData.team_b_nama;
+    }
+    document.getElementById('timeout-active-team').textContent = teamName;
+  } else {
+    // Timeout habis
+    timeoutEndTime = null;
+    document.getElementById('timeout-active-overlay').style.display = 'none';
+    // Kita panggil stopTimeout agar server juga sinkron
+    stopTimeout();
+  }
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
 
 btnTimerStop.addEventListener('click', () => {
   if (!timerInterval) return;
@@ -566,7 +619,10 @@ function broadcastState() {
       foulB: matchData ? (matchData.foul_b || 0) : 0,
       hasFoul: matchData ? (matchData.id_cabor == 2 || matchData.id_cabor == 3) : false,
       timerText: `${formatNum(min)}:${formatNum(sec)}`,
-      currentPeriod: matchData ? matchData.current_period : 'Babak 1'
+      currentPeriod: matchData ? matchData.current_period : 'Babak 1',
+      isTimeout: timeoutEndTime !== null,
+      timeoutEndTime: timeoutEndTime,
+      timeoutBy: timeoutBy
     }
   });
 }
@@ -675,6 +731,88 @@ function saveMatchScoreLocally() {
   matchData.skor_b = currentScoreB;
   localStorage.setItem('active_match_data', JSON.stringify(matchData));
 }
+
+// --- TIMEOUT CONTROLS ---
+window.startTimeout = function() {
+  const duration = parseInt(document.getElementById('timeout-duration-input').value) || 60;
+  const team = document.getElementById('timeout-team-select').value;
+  
+  // Pause timer first if running
+  if (timerInterval) {
+    btnTimerStop.click();
+  }
+
+  const payload = {
+    action: 'timeout_start',
+    duration: duration,
+    timeout_by: team === 'both' ? 'both' : (team === 'A' ? matchData.id_team_a : matchData.id_team_b),
+    id_jadwal: matchData.id_jadwal
+  };
+
+  // Optimistic update locally
+  timeoutEndTime = new Date().getTime() + (duration * 1000);
+  timeoutBy = team;
+  document.getElementById('timeout-modal').style.display = 'none';
+  
+  // Log event
+  let teamName = "KEDUA TIM";
+  if(team === 'A') teamName = matchData.team_a_nama;
+  if(team === 'B') teamName = matchData.team_b_nama;
+  
+  const eventPayload = {
+    id_event: generateUUID(),
+    id_jadwal: matchData.id_jadwal,
+    id_personil: 0,
+    id_team: (team === 'A' ? matchData.id_team_a : (team === 'B' ? matchData.id_team_b : 0)),
+    jenis: 'timeout',
+    menit: Math.floor(timerSeconds / 60),
+    playerName: 'TIMEOUT',
+    teamType: team,
+    target_poin: 'none',
+    nilai: 0,
+    periode: matchData.current_period || 'Babak 1',
+    keterangan: 'Timeout oleh ' + teamName
+  };
+  
+  if (!matchData.events) matchData.events = [];
+  matchData.events.unshift(eventPayload);
+  renderTimeline();
+  broadcastState();
+
+  queueSyncAction('/api/desktop/update-timer', payload);
+  queueSyncAction('/api/desktop/add-event', eventPayload);
+};
+
+window.stopTimeout = function() {
+  timeoutEndTime = null;
+  timeoutBy = null;
+  document.getElementById('timeout-active-overlay').style.display = 'none';
+  broadcastState();
+
+  if (matchData && matchData.id_jadwal) {
+    queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, action: 'timeout_stop' });
+  }
+};
+
+// Wire up timeout buttons
+document.getElementById('btn-timeout-trigger').addEventListener('click', () => {
+  document.getElementById('timeout-modal').style.display = 'flex';
+  // Update team labels in modal
+  document.getElementById('opt-team-a').textContent = matchData.team_a_nama.toUpperCase();
+  document.getElementById('opt-team-b').textContent = matchData.team_b_nama.toUpperCase();
+});
+
+document.getElementById('btn-timeout-cancel').addEventListener('click', () => {
+  document.getElementById('timeout-modal').style.display = 'none';
+});
+
+document.getElementById('btn-timeout-start').addEventListener('click', () => {
+  startTimeout();
+});
+
+document.getElementById('btn-timeout-stop').addEventListener('click', () => {
+  stopTimeout();
+});
 
 // 9. EVENT REGISTRATION (ROSTER & TIMER ADJUSTMENTS)
 btnTimeMinPlus.addEventListener('click', () => {

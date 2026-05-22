@@ -25,6 +25,42 @@ const overlayTeam = document.getElementById('overlay-team');
 
 let overlayTimeout = null;
 
+// TIMEOUT STATE
+let timeoutEndTime = null;
+let timeoutBy = null;
+
+// Visual Update Interval
+setInterval(() => {
+    updateTimeoutDisplay();
+}, 1000);
+
+function updateTimeoutDisplay() {
+    if (!timeoutEndTime) {
+        document.getElementById('timeout-overlay').classList.remove('active');
+        return;
+    }
+
+    const now = new Date().getTime();
+    const diff = Math.ceil((timeoutEndTime - now) / 1000);
+    
+    if (diff > 0) {
+        document.getElementById('timeout-overlay').classList.add('active');
+        
+        const tmins = Math.floor(diff / 60);
+        const tsecs = diff % 60;
+        document.getElementById('sb-timeout-countdown').textContent = String(tmins).padStart(2, '0') + ':' + String(tsecs).padStart(2, '0');
+        
+        let teamLabel = "KEDUA TIM";
+        if (timeoutBy === 'A') teamLabel = sbTeamA.textContent;
+        else if (timeoutBy === 'B') teamLabel = sbTeamB.textContent;
+        
+        document.getElementById('sb-timeout-team').textContent = teamLabel;
+    } else {
+        timeoutEndTime = null;
+        document.getElementById('timeout-overlay').classList.remove('active');
+    }
+}
+
 // --- FULLSCREEN CONTROLS ---
 // Toggle fullscreen via Double Click
 document.addEventListener('dblclick', () => {
@@ -86,6 +122,15 @@ function updateScoreboardUI(data) {
   sbScoreA.textContent = data.scoreA;
   sbScoreB.textContent = data.scoreB;
   sbTimer.textContent = data.timerText;
+
+  // Sync Timeout State
+  if (data.isTimeout) {
+    timeoutEndTime = data.timeoutEndTime;
+    timeoutBy = data.timeoutBy;
+  } else {
+    timeoutEndTime = null;
+    timeoutBy = null;
+  }
 
   // Auto-hide Timer Footer for set-based sports
   const footerTimer = document.querySelector('.sb-footer');

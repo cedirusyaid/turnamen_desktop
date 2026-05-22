@@ -100,6 +100,10 @@
               <button id="btn-timer-reset" class="btn-reset">Reset</button>
             </div>
             
+            <button id="btn-timeout-trigger" class="btn-primary" style="margin-top: 15px; background: #ffa502; box-shadow: 0 5px 15px rgba(255, 165, 2, 0.3); border-radius: 50px; font-weight: 800;">
+              <i class="fa fa-clock"></i> MULAI TIMEOUT
+            </button>
+            
             <div class="period-control-wrapper" style="margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;">
               <span style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Sesi / Babak:</span>
               <select id="select-period" style="padding: 6px 12px; background: #161a2e; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-family: inherit; font-size: 0.85rem; font-weight: bold; cursor: pointer; outline: none;">
@@ -230,6 +234,46 @@
           <button type="button" id="btn-anon-cancel" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem;">Batal</button>
           <button type="button" id="btn-anon-save" style="flex: 1; padding: 12px; background: #00d2ff; color: #0d0f1a; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem;">Simpan Event</button>
         </div>
+      </div>
+    </div>
+
+    <!-- MODAL TIMEOUT -->
+    <div id="timeout-modal" class="modal-overlay" style="display: none;">
+      <div class="setup-box" style="text-align: left; max-width: 400px; box-sizing: border-box;">
+        <h2 style="margin-top: 0; color: #ffa502;"><i class="fa fa-clock"></i> Mulai Timeout</h2>
+        <p style="margin-bottom: 1.5rem;">Atur tim yang meminta jeda waktu.</p>
+        
+        <div class="form-group">
+          <label>Oleh Tim</label>
+          <select id="timeout-team-select">
+            <option value="both">KEDUA TIM</option>
+            <option value="A" id="opt-team-a">TIM A</option>
+            <option value="B" id="opt-team-b">TIM B</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Durasi (Detik)</label>
+          <input type="number" id="timeout-duration-input" value="60" min="10">
+          <p style="font-size: 0.75rem; margin-top: 5px; color: #a4b0be;">Default 1 menit (60 detik).</p>
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 10px; margin-top: 1rem;">
+          <button type="button" id="btn-timeout-cancel" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">Batal</button>
+          <button type="button" id="btn-timeout-start" style="flex: 1; padding: 12px; background: #ffa502; color: #0d0f1a; border: none; border-radius: 8px; font-weight: bold;">Mulai</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERLAY TIMEOUT AKTIF -->
+    <div id="timeout-active-overlay" class="modal-overlay" style="display: none; background: rgba(5, 6, 11, 0.9); z-index: 2000;">
+      <div style="text-align: center;">
+        <div id="timeout-countdown-display" style="font-size: 15vh; font-weight: 900; color: #ffa502; font-family: monospace; line-height: 1;">00:00</div>
+        <h1 id="timeout-active-label" style="font-size: 5vh; color: #fff; text-transform: uppercase; letter-spacing: 5px; margin: 2vh 0;">TIMEOUT</h1>
+        <div id="timeout-active-team" style="font-size: 3vh; color: #00d2ff; font-weight: bold; margin-bottom: 5vh;">TIM A</div>
+        <button id="btn-timeout-stop" class="btn-danger" style="width: auto; padding: 15px 50px; border-radius: 50px; font-size: 1.2rem; font-weight: 800;">
+          <i class="fa fa-stop"></i> AKHIRI TIMEOUT
+        </button>
       </div>
     </div>
 

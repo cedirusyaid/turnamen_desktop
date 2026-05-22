@@ -209,6 +209,10 @@ body {
   display: flex;
 }
 
+#timeout-overlay.active {
+  display: flex !important;
+}
+
 .event-overlay.active .event-banner {
   transform: scale(1);
   opacity: 1;
