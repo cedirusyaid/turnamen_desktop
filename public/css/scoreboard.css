@@ -29,6 +29,56 @@ body {
   position: relative;
   border: 4px solid #1a1d32;
   box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+  z-index: 2;
+}
+
+.stadium-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, #1a202c 0%, #000 100%);
+    z-index: 1;
+}
+
+.btn-swap {
+    position: fixed;
+    bottom: 2vh;
+    right: 1.5vw;
+    z-index: 10001;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 1vh 1.5vh;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: all 0.3s;
+    font-size: 1.5vh;
+    font-weight: bold;
+}
+
+.btn-swap:hover { opacity: 1; background: rgba(255,255,255,0.2); border-color: #ecc94b; color: #ecc94b; }
+
+.sb-board.reversed {
+    flex-direction: row-reverse;
+}
+
+.sb-board.reversed .sb-team.team-left {
+    order: 3;
+}
+.sb-board.reversed .sb-score-wrapper {
+    order: 2;
+}
+.sb-board.reversed .sb-team.team-right {
+    order: 1;
+}
+
+.sb-board.reversed .sb-score-container,
+.sb-board.reversed .set-scores-container {
+    flex-direction: row-reverse;
+}
+
+.sb-score-wrapper {
+    min-width: 30vw;
 }
 
 /* HEADER INFO */
@@ -80,10 +130,10 @@ body {
 /* MAIN BOARD LAYOUT */
 .sb-board {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.2fr;
+  grid-template-columns: 1fr 1.5fr 1fr;
   align-items: center;
-  flex: 1;
-  margin: 4vh 0;
+  height: 45vh;
+  margin: 0;
 }
 
 .sb-team {
@@ -94,51 +144,17 @@ body {
   text-align: center;
 }
 
-.sb-team-logo {
-  width: 18vh;
-  height: 18vh;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 8vh;
-  font-weight: 900;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-}
-
-.team-left .sb-team-logo {
-  border-color: #00d2ff;
-  color: #00d2ff;
-  text-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
-  box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
-}
-
-.team-right .sb-team-logo {
-  border-color: #ff9f43;
-  color: #ff9f43;
-  text-shadow: 0 0 15px rgba(255, 159, 67, 0.5);
-  box-shadow: 0 0 20px rgba(255, 159, 67, 0.2);
-}
-
 .sb-team-name {
-  font-size: 5vh;
+  font-size: 6vh;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  max-width: 30vw;
+  max-width: 25vw;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.team-left .sb-team-name {
-  color: #ffffff;
-}
-
-.team-right .sb-team-name {
-  color: #ffffff;
+  color: #fff;
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 /* SCORE SYSTEM */
@@ -146,42 +162,78 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 3vw;
+  gap: 2vw;
 }
 
 .sb-score {
   font-family: 'Orbitron', sans-serif;
-  font-size: 18vh;
+  font-size: 28vh;
   font-weight: 900;
   color: #ffffff;
-  min-width: 12vw;
+  min-width: 15vw;
   text-align: center;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+  line-height: 0.8;
 }
 
 .sb-colon {
   font-family: 'Orbitron', sans-serif;
-  font-size: 14vh;
-  color: #a4b0be;
+  font-size: 15vh;
+  color: #4a5568;
   animation: blink 1s infinite;
+}
+
+/* FOUL INDICATORS - Compact Style */
+.foul-box {
+  background: rgba(229, 62, 62, 0.2);
+  border: 3px solid #e53e3e;
+  padding: 1vh 2vw;
+  border-radius: 12px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1vh;
+  min-width: 10vw;
+  box-shadow: 0 0 20px rgba(229, 62, 62, 0.3);
+}
+
+.foul-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 6vh;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.foul-label {
+  font-size: 1.5vh;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 800;
+  margin-bottom: 0.5vh;
 }
 
 /* FOOTER TIMER */
 .sb-footer {
+  height: 50vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-top: 2px solid rgba(255, 255, 255, 0.05);
-  padding-top: 2vh;
+  border-top: 4px solid #1a1d32;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 20px 50px rgba(0,0,0,0.5);
+  margin: 0 -5vw -3vh -5vw;
 }
 
 .sb-timer {
   font-family: 'Orbitron', sans-serif;
-  font-size: 10vh;
+  font-size: 38vh;
   font-weight: 900;
-  color: #2ed573;
-  letter-spacing: 4px;
-  text-shadow: 0 0 15px rgba(46, 213, 115, 0.4);
+  color: #ecc94b;
+  letter-spacing: -2vh;
+  text-shadow: 0 0 50px rgba(236, 201, 75, 0.4);
+  line-height: 1;
 }
 
 /* GOAL EVENT CELEBRATION OVERLAY */

@@ -10,13 +10,18 @@ const sbTeamB = document.getElementById('sb-team-b');
 const sbScoreA = document.getElementById('sb-score-a');
 const sbScoreB = document.getElementById('sb-score-b');
 const sbTimer = document.getElementById('sb-timer');
-const sbLogoA = document.getElementById('sb-logo-a');
-const sbLogoB = document.getElementById('sb-logo-b');
+
+const setScoresPanel = document.getElementById('set-scores-panel');
+const set1Val = document.getElementById('set1-val');
+const set2Val = document.getElementById('set2-val');
+const set3Val = document.getElementById('set3-val');
 
 const foulBoxA = document.getElementById('foul-box-a');
 const foulValA = document.getElementById('sb-foul-a');
 const foulBoxB = document.getElementById('foul-box-b');
 const foulValB = document.getElementById('sb-foul-b');
+
+const syncIndicator = document.getElementById('sync-indicator');
 
 const eventOverlay = document.getElementById('event-overlay');
 const overlayTitle = document.getElementById('overlay-title');
@@ -24,6 +29,13 @@ const overlayPlayer = document.getElementById('overlay-player');
 const overlayTeam = document.getElementById('overlay-team');
 
 let overlayTimeout = null;
+
+// --- SIDE SWAP LOGIC ---
+window.toggleSwap = function() {
+    const container = document.getElementById('main-board-container');
+    container.classList.toggle('reversed');
+};
+// ---------------------------
 
 // TIMEOUT STATE
 let timeoutEndTime = null;
@@ -114,14 +126,25 @@ function updateScoreboardUI(data) {
   
   sbTeamA.textContent = data.teamAName || 'TEAM A';
   sbTeamB.textContent = data.teamBName || 'TEAM B';
-  
-  // Ambil huruf pertama sebagai logo inisial tim
-  sbLogoA.textContent = (data.teamAName || 'A').charAt(0).toUpperCase();
-  sbLogoB.textContent = (data.teamBName || 'B').charAt(0).toUpperCase();
 
   sbScoreA.textContent = data.scoreA;
   sbScoreB.textContent = data.scoreB;
-  sbTimer.textContent = data.timerText;
+  
+  // Update Set Scores
+  if (data.tipe_skor === 'set') {
+    if (setScoresPanel) {
+        setScoresPanel.style.display = 'flex';
+        if (set1Val) set1Val.textContent = (data.s1_1 || 0) + '-' + (data.s1_2 || 0);
+        if (set2Val) set2Val.textContent = (data.s2_1 || 0) + '-' + (data.s2_2 || 0);
+        if (set3Val) set3Val.textContent = (data.s3_1 || 0) + '-' + (data.s3_2 || 0);
+    }
+    sbTimer.textContent = 'VS';
+    sbTimer.style.fontSize = '15vh';
+  } else {
+    if (setScoresPanel) setScoresPanel.style.display = 'none';
+    sbTimer.textContent = data.timerText;
+    sbTimer.style.fontSize = '10vh';
+  }
 
   // Sync Timeout State
   if (data.isTimeout) {
@@ -135,7 +158,8 @@ function updateScoreboardUI(data) {
   // Auto-hide Timer Footer for set-based sports
   const footerTimer = document.querySelector('.sb-footer');
   if (data.tipe_skor === 'set') {
-    if (footerTimer) footerTimer.style.display = 'none';
+    // In set mode, we might want to keep the footer for consistent layout but show VS
+    if (footerTimer) footerTimer.style.display = 'flex';
   } else {
     if (footerTimer) footerTimer.style.display = 'flex';
   }
@@ -155,6 +179,14 @@ function updateScoreboardUI(data) {
   } else {
     if (foulBoxA) foulBoxA.style.display = 'none';
     if (foulBoxB) foulBoxB.style.display = 'none';
+  }
+
+  if (syncIndicator) {
+      syncIndicator.style.transition = 'opacity 0.5s';
+      syncIndicator.style.opacity = '0';
+      setTimeout(() => {
+          syncIndicator.style.display = 'none';
+      }, 500);
   }
 }
 

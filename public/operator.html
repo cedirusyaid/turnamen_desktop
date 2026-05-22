@@ -35,31 +35,34 @@
     </div>
 
     <!-- MAIN APP PANEL -->
-    <div class="main-layout" style="display: none;">
-      <!-- SIDEBAR KONTROL -->
-      <aside class="sidebar">
-        <div class="brand">
-          <span class="logo-dot"></span>
-          <h2>KIRANA Live</h2>
-        </div>
-        
-        <div class="status-panel">
-          <div class="status-item">
-            <span class="status-label">Koneksi Server:</span>
-            <span id="connection-status" class="status-badge offline">Offline</span>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Antrean Sinkronisasi:</span>
-            <span id="sync-count" class="badge-count">0</span>
-          </div>
+    <div class="main-layout" style="display: none; flex-direction: column;">
+      
+      <!-- TOP UTILITY BAR (Ganti Sidebar) -->
+      <div class="top-utility-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 2rem; background: rgba(18, 20, 37, 0.95); border-bottom: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); z-index: 100;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="brand" style="display: flex; align-items: center; gap: 10px;">
+              <span class="logo-dot"></span>
+              <h2 style="margin: 0; font-size: 1.2rem;">KIRANA Live</h2>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 15px; padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.75rem; color: #a4b0be; text-transform: uppercase; font-weight: bold;">Server:</span>
+                    <span id="connection-status" class="status-badge offline">Offline</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.75rem; color: #a4b0be; text-transform: uppercase; font-weight: bold;">Queue:</span>
+                    <span id="sync-count" class="badge-count">0</span>
+                </div>
+            </div>
         </div>
 
-        <div class="nav-actions">
-          <button id="btn-open-videotron" class="btn-sidebar">📺 Buka Layar Videotron</button>
-          <button id="btn-sync-now" class="btn-sidebar secondary">🔄 Sinkronkan Sekarang</button>
-          <button id="btn-reset-match" class="btn-danger">🔒 Reset & Keluar</button>
+        <div class="nav-actions" style="display: flex; flex-direction: row; gap: 10px;">
+          <button id="btn-sync-now" class="btn-time-adj" style="min-width: auto; padding: 8px 15px; border-radius: 8px;"><i class="fa fa-sync me-1"></i> Sinkronkan</button>
+          <button id="btn-open-videotron" class="btn-time-adj" style="min-width: auto; padding: 8px 15px; border-radius: 8px;"><i class="fa fa-tv me-1"></i> Layar Videotron</button>
+          <button id="btn-reset-match" class="btn-time-adj" style="min-width: auto; padding: 8px 15px; border-radius: 8px; border-color: rgba(255, 71, 87, 0.4); color: #ff4757;"><i class="fa fa-power-off me-1"></i> Keluar</button>
         </div>
-      </aside>
+      </div>
 
       <!-- BOARD UTAMA -->
       <main class="main-content">

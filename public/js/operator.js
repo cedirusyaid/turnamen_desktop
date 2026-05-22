@@ -120,11 +120,13 @@ window.addEventListener('offline', updateOnlineStatus);
 if (ipcRenderer) {
   ipcRenderer.on('scoreboard-status', (event, isOpen) => {
     if (isOpen) {
-      btnOpenVideotron.textContent = "📺 Videotron Aktif";
-      btnOpenVideotron.className = "btn-sidebar secondary";
+      btnOpenVideotron.innerHTML = '<i class="fa fa-tv me-1"></i> Videotron Aktif';
+      btnOpenVideotron.style.borderColor = '#00d2ff';
+      btnOpenVideotron.style.color = '#00d2ff';
     } else {
-      btnOpenVideotron.textContent = "📺 Buka Layar Videotron";
-      btnOpenVideotron.className = "btn-sidebar";
+      btnOpenVideotron.innerHTML = '<i class="fa fa-tv me-1"></i> Layar Videotron';
+      btnOpenVideotron.style.borderColor = '';
+      btnOpenVideotron.style.color = '';
     }
   });
 }
@@ -638,6 +640,12 @@ function broadcastState() {
       hasFoul: matchData ? (matchData.id_cabor == 2 || matchData.id_cabor == 3) : false,
       timerText: `${formatNum(min)}:${formatNum(sec)}`,
       currentPeriod: matchData ? matchData.current_period : 'Babak 1',
+      s1_1: matchData ? (matchData.s1_1 || 0) : 0,
+      s1_2: matchData ? (matchData.s1_2 || 0) : 0,
+      s2_1: matchData ? (matchData.s2_1 || 0) : 0,
+      s2_2: matchData ? (matchData.s2_2 || 0) : 0,
+      s3_1: matchData ? (matchData.s3_1 || 0) : 0,
+      s3_2: matchData ? (matchData.s3_2 || 0) : 0,
       isTimeout: timeoutEndTime !== null,
       timeoutEndTime: timeoutEndTime,
       timeoutBy: timeoutBy
@@ -908,22 +916,41 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
 
   // Handle score increments
   if (points > 0) {
+    let affectedScore = null;
+    let affectedSet = null;
+    let setScoreKey = '';
+
     if (targetPoin === 'opponent') {
       if (team === 'A') {
         currentScoreB += points;
         scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
       } else {
         currentScoreA += points;
         scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
       }
     } else {
       if (team === 'A') {
         currentScoreA += points;
         scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
       } else {
         currentScoreB += points;
         scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
       }
+    }
+
+    // Local set score calculation for Set-based sports
+    if (matchData.tipe_skor === 'set' && affectedScore) {
+      const period = matchData.current_period || '';
+      let setNum = 1;
+      if (period.includes('2')) setNum = 2;
+      if (period.includes('3')) setNum = 3;
+      
+      const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
+      matchData[key] = (parseInt(matchData[key]) || 0) + points;
     }
   }
   
@@ -1157,22 +1184,38 @@ window.saveAnonymousEvent = function() {
   localStorage.setItem('active_match_data', JSON.stringify(matchData));
 
   if (weight > 0) {
+    let affectedScore = null;
     if (targetPoin === 'opponent') {
       if (team === 'A') {
         currentScoreB += weight;
         scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
       } else {
         currentScoreA += weight;
         scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
       }
     } else {
       if (team === 'A') {
         currentScoreA += weight;
         scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
       } else {
         currentScoreB += weight;
         scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
       }
+    }
+
+    // Local set score calculation for Set-based sports
+    if (matchData.tipe_skor === 'set' && affectedScore) {
+      const period = matchData.current_period || '';
+      let setNum = 1;
+      if (period.includes('2')) setNum = 2;
+      if (period.includes('3')) setNum = 3;
+      
+      const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
+      matchData[key] = (parseInt(matchData[key]) || 0) + weight;
     }
   }
 
@@ -1293,23 +1336,41 @@ window.deleteEventLocally = function(eventId) {
     if (deletedEvent.nilai && deletedEvent.nilai > 0) {
       const weight = deletedEvent.nilai;
       const targetPoin = deletedEvent.target_poin || 'self';
+      let affectedScore = null;
+
       if (targetPoin === 'opponent') {
         if (deletedEvent.teamType === 'A' && currentScoreB > 0) {
           currentScoreB = Math.max(0, currentScoreB - weight);
           scoreBDisplay.textContent = currentScoreB;
+          affectedScore = 'B';
         } else if (deletedEvent.teamType === 'B' && currentScoreA > 0) {
           currentScoreA = Math.max(0, currentScoreA - weight);
           scoreADisplay.textContent = currentScoreA;
+          affectedScore = 'A';
         }
       } else {
         if (deletedEvent.teamType === 'A' && currentScoreA > 0) {
           currentScoreA = Math.max(0, currentScoreA - weight);
           scoreADisplay.textContent = currentScoreA;
+          affectedScore = 'A';
         } else if (deletedEvent.teamType === 'B' && currentScoreB > 0) {
           currentScoreB = Math.max(0, currentScoreB - weight);
           scoreBDisplay.textContent = currentScoreB;
+          affectedScore = 'B';
         }
       }
+
+      // Local set score subtraction
+      if (matchData.tipe_skor === 'set' && affectedScore) {
+        const period = deletedEvent.periode || '';
+        let setNum = 1;
+        if (period.includes('2')) setNum = 2;
+        if (period.includes('3')) setNum = 3;
+        
+        const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
+        matchData[key] = Math.max(0, (parseInt(matchData[key]) || 0) - weight);
+      }
+
       saveMatchScoreLocally();
       broadcastState();
       queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
