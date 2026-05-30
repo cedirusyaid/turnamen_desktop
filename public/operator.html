@@ -29,6 +29,38 @@
         </div>
         
         <button id="btn-download" class="btn-primary">Koneksikan & Buka Pertandingan</button>
+        
+        <div style="margin: 20px 0; border-top: 1px solid rgba(255,255,255,0.1); position: relative; text-align: center;">
+          <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #121425; padding: 0 10px; font-size: 0.75rem; color: #888; letter-spacing: 1px;">ATAU OFFLINE</span>
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+          <label>Muat Paket Kejuaraan (.json)</label>
+          <input type="file" id="offline-file-input" accept=".json" style="width: 100%; font-size: 0.85rem; padding: 8px; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.2); border-radius: 6px; color: #fff; box-sizing: border-box;">
+        </div>
+
+        <div id="offline-match-selector" class="form-group" style="display: none; text-align: left; margin-top: 15px;">
+          <label>Pilih Pertandingan</label>
+          <select id="offline-match-select" style="width: 100%; padding: 10px; background: #161a2e; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer; box-sizing: border-box; margin-bottom: 15px; outline: none;">
+            <!-- Matches populated here -->
+          </select>
+          <button id="btn-start-offline" class="btn-primary" style="background: #2ed573;">Mulai Laga Offline</button>
+        </div>
+
+        <div id="local-backups-container" class="form-group" style="display: none; text-align: left; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+          <label style="color: #2ed573; font-weight: bold;"><i class="fa fa-hdd-o"></i> Cadangan Otomatis di Laptop</label>
+          <select id="local-backups-select" style="width: 100%; padding: 10px; background: #161a2e; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer; box-sizing: border-box; margin-bottom: 15px; outline: none;">
+            <!-- Backups populated here -->
+          </select>
+          <div id="local-backups-match-wrapper" style="display: none;">
+            <label>Pilih Pertandingan</label>
+            <select id="local-backups-match-select" style="width: 100%; padding: 10px; background: #161a2e; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer; box-sizing: border-box; margin-bottom: 15px; outline: none;">
+              <!-- Matches of selected backup here -->
+            </select>
+            <button id="btn-start-local-backup" class="btn-primary" style="background: #00d2ff; color: #0d0f1a;">Buka dari Cadangan Laptop</button>
+          </div>
+        </div>
+
         <div id="setup-status" class="status-msg"></div>
 
       </div>

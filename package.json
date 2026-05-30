@@ -6,7 +6,7 @@
   "homepage": "https://turnamen.info",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --no-sandbox",
     "dist": "electron-builder"
   },
   "build": {

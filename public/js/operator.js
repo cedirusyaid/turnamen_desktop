@@ -1,9 +1,13 @@
 let ipcRenderer = null;
+let fs = null;
+let path = null;
 try {
   const electron = window.require ? window.require('electron') : null;
   if (electron) {
     ipcRenderer = electron.ipcRenderer;
   }
+  fs = window.require ? window.require('fs') : null;
+  path = window.require ? window.require('path') : null;
 } catch (e) {
   console.log("Menjalankan di luar container Electron (Mode PWA/Browser)");
 }
@@ -1421,10 +1425,14 @@ async function processSyncQueue() {
   activeItem.status = 'processing';
 
   try {
+    const currentToken = (matchData.token && matchData.token !== 'offline_mode')
+      ? matchData.token
+      : (localStorage.getItem('temp_token') || 'offline_mode');
+
     const response = await fetch(`${matchData.serverUrl}${activeItem.endpoint}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${matchData.token}`,
+        'Authorization': `Bearer ${currentToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(activeItem.payload)
@@ -1520,6 +1528,68 @@ function generateUUID() {
   });
 }
 
+// --- AUTO-BACKUP SYSTEM UTILITIES ---
+function getBackupDirectory() {
+  if (!fs || !path) return null;
+  const home = process.env.APPDATA || (process.platform === 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
+  const dir = path.join(home, 'TurnamenScorer', 'offline_backups');
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    return dir;
+  } catch (e) {
+    console.error("Gagal membuat direktori backup:", e);
+    return null;
+  }
+}
+
+function saveLocalBackup(tournamentId, data) {
+  const dir = getBackupDirectory();
+  if (!dir) return;
+  try {
+    const filePath = path.join(dir, `tournament_${tournamentId}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(data), 'utf8');
+  } catch (e) {
+    console.error(`Gagal menyimpan file auto-backup tournament_${tournamentId}:`, e);
+  }
+}
+
+function getLocalBackupsList() {
+  const dir = getBackupDirectory();
+  if (!dir) return [];
+  try {
+    const files = fs.readdirSync(dir);
+    const list = [];
+    files.forEach(file => {
+      if (file.startsWith('tournament_') && file.endsWith('.json')) {
+        const filePath = path.join(dir, file);
+        const stats = fs.statSync(filePath);
+        const content = fs.readFileSync(filePath, 'utf8');
+        try {
+          const data = JSON.parse(content);
+          if (data && data.tournament && Array.isArray(data.matches)) {
+            list.push({
+              id_turnamen: data.tournament.id_turnamen,
+              nama_turnamen: data.tournament.nama_turnamen,
+              cabor_nama: data.tournament.cabor_nama,
+              mtime: stats.mtime,
+              file: file,
+              data: data
+            });
+          }
+        } catch (je) {
+          console.error(`JSON Parse error for ${file}:`, je);
+        }
+      }
+    });
+    return list.sort((a, b) => b.mtime - a.mtime);
+  } catch (e) {
+    console.error("Gagal membaca daftar file backup:", e);
+    return [];
+  }
+}
+
 // AUTO RESTORE SESSION ON LOAD
 window.addEventListener('load', () => {
   // Handle Capacitor (Android/iOS Tablet) Native Integrations
@@ -1548,6 +1618,80 @@ window.addEventListener('load', () => {
     initMatchPanel();
   }
 
+  // Handle Offline Tournament Import
+  const offlineFileInput = document.getElementById('offline-file-input');
+  const offlineMatchSelector = document.getElementById('offline-match-selector');
+  const offlineMatchSelect = document.getElementById('offline-match-select');
+  const btnStartOffline = document.getElementById('btn-start-offline');
+  let offlineTournamentData = null;
+
+  if (offlineFileInput) {
+    offlineFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (data && data.status && data.tournament && Array.isArray(data.matches)) {
+            offlineTournamentData = data;
+            
+            // Populate select
+            offlineMatchSelect.innerHTML = '';
+            data.matches.forEach(m => {
+              const opt = document.createElement('option');
+              opt.value = m.id_jadwal;
+              opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+              offlineMatchSelect.appendChild(opt);
+            });
+
+            offlineMatchSelector.style.display = 'block';
+            showSetupStatus(`Berhasil memuat turnamen: ${data.tournament.nama_turnamen} (${data.matches.length} pertandingan). Silakan pilih pertandingan dan klik tombol hijau.`, "success");
+          } else {
+            showSetupStatus("Format file JSON paket kejuaraan tidak valid!", "error");
+            offlineMatchSelector.style.display = 'none';
+          }
+        } catch (err) {
+          showSetupStatus("Gagal membaca file JSON kejuaraan!", "error");
+          offlineMatchSelector.style.display = 'none';
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  if (btnStartOffline) {
+    btnStartOffline.addEventListener('click', () => {
+      if (!offlineTournamentData) return;
+      const selectedId = offlineMatchSelect.value;
+      const match = offlineTournamentData.matches.find(m => m.id_jadwal == selectedId);
+      if (!match) {
+        showSetupStatus("Pertandingan tidak ditemukan di paket offline!", "error");
+        return;
+      }
+
+      // Simpan data sebagai active match
+      matchData = match;
+      matchData.serverUrl = localStorage.getItem('temp_server_url') || 'https://turnamen.info';
+      matchData.token = localStorage.getItem('temp_token') || 'offline_mode';
+
+      localStorage.setItem('active_match_data', JSON.stringify(matchData));
+      localStorage.setItem('sync_queue', JSON.stringify([]));
+
+      initMatchPanel();
+      
+      // Deteksi status koneksi internet secara dinamis
+      updateOnlineStatus();
+
+      showSetupStatus("Memulai pertandingan offline...", "success");
+      setTimeout(() => {
+        setupModal.style.display = 'none';
+        mainLayout.style.display = 'flex';
+      }, 1000);
+    });
+  }
+
   // Wire Modal Buttons
   const btnAnonCancel = document.getElementById('btn-anon-cancel');
   const btnAnonSave = document.getElementById('btn-anon-save');
@@ -1564,4 +1708,158 @@ window.addEventListener('load', () => {
       saveAnonymousEvent();
     });
   }
+
+  // --- AUTO-BACKUP UI & LOGIC INTEGRATION ---
+  const localBackupsContainer = document.getElementById('local-backups-container');
+  const localBackupsSelect = document.getElementById('local-backups-select');
+  const localBackupsMatchWrapper = document.getElementById('local-backups-match-wrapper');
+  const localBackupsMatchSelect = document.getElementById('local-backups-match-select');
+  const btnStartLocalBackup = document.getElementById('btn-start-local-backup');
+  let loadedBackupData = null;
+
+  function renderAutoBackupsUI() {
+    if (!localBackupsContainer || !localBackupsSelect || !fs) return;
+    
+    const backups = getLocalBackupsList();
+    if (backups.length === 0) {
+      localBackupsContainer.style.display = 'none';
+      return;
+    }
+
+    localBackupsSelect.innerHTML = '<option value="">-- Pilih Cadangan Turnamen --</option>';
+    backups.forEach(b => {
+      const timeStr = new Date(b.mtime).toLocaleString('id-ID', { hour12: false });
+      const opt = document.createElement('option');
+      opt.value = b.id_turnamen;
+      opt.textContent = `${b.nama_turnamen} [${b.cabor_nama}] (${timeStr})`;
+      opt.dataset.json = JSON.stringify(b.data);
+      localBackupsSelect.appendChild(opt);
+    });
+
+    localBackupsContainer.style.display = 'block';
+  }
+
+  if (localBackupsSelect) {
+    localBackupsSelect.addEventListener('change', () => {
+      const selectedOpt = localBackupsSelect.options[localBackupsSelect.selectedIndex];
+      if (!selectedOpt || !selectedOpt.value) {
+        localBackupsMatchWrapper.style.display = 'none';
+        loadedBackupData = null;
+        return;
+      }
+
+      try {
+        const data = JSON.parse(selectedOpt.dataset.json);
+        loadedBackupData = data;
+        
+        // Populate matches of this backup
+        localBackupsMatchSelect.innerHTML = '';
+        data.matches.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id_jadwal;
+          opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+          localBackupsMatchSelect.appendChild(opt);
+        });
+
+        localBackupsMatchWrapper.style.display = 'block';
+      } catch (err) {
+        console.error("Gagal memproses detail data turnamen lokal:", err);
+        localBackupsMatchWrapper.style.display = 'none';
+        loadedBackupData = null;
+      }
+    });
+  }
+
+  if (btnStartLocalBackup) {
+    btnStartLocalBackup.addEventListener('click', () => {
+      if (!loadedBackupData) return;
+      const selectedId = localBackupsMatchSelect.value;
+      const match = loadedBackupData.matches.find(m => m.id_jadwal == selectedId);
+      if (!match) {
+        showSetupStatus("Pertandingan tidak ditemukan di file cadangan laptop!", "error");
+        return;
+      }
+
+      // Simpan data sebagai active match
+      matchData = match;
+      matchData.serverUrl = localStorage.getItem('temp_server_url') || 'https://turnamen.info';
+      matchData.token = localStorage.getItem('temp_token') || 'offline_mode';
+
+      localStorage.setItem('active_match_data', JSON.stringify(matchData));
+      localStorage.setItem('sync_queue', JSON.stringify([]));
+
+      initMatchPanel();
+      
+      // Deteksi status koneksi internet secara dinamis
+      updateOnlineStatus();
+
+      showSetupStatus("Memulai pertandingan dari cadangan laptop...", "success");
+      setTimeout(() => {
+        setupModal.style.display = 'none';
+        mainLayout.style.display = 'flex';
+      }, 1000);
+    });
+  }
+
+  // Background Auto-Backup Service (Silent download)
+  async function runBackgroundBackup() {
+    const serverUrl = localStorage.getItem('temp_server_url');
+    const token = localStorage.getItem('temp_token');
+    
+    if (!serverUrl || !token || !navigator.onLine || !fs) return;
+    
+    try {
+      const res = await fetch(`${serverUrl}/api/desktop/active-tournaments`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const result = await res.json();
+      if (res.status === 200 && result.status && Array.isArray(result.tournaments)) {
+        console.log(`[Auto-Backup] Menemukan ${result.tournaments.length} turnamen aktif untuk dicadangkan...`);
+        
+        const activeIds = result.tournaments.map(t => Number(t.id_turnamen));
+        
+        // Hapus berkas cadangan lokal dari turnamen yang sudah tidak aktif / selesai di server
+        const currentBackups = getLocalBackupsList();
+        currentBackups.forEach(b => {
+          if (!activeIds.includes(Number(b.id_turnamen))) {
+            try {
+              const filePath = path.join(getBackupDirectory(), b.file);
+              fs.unlinkSync(filePath);
+              console.log(`[Auto-Backup] Menghapus cadangan lama yang sudah selesai: ${b.nama_turnamen}`);
+            } catch (err) {
+              console.error("Gagal menghapus cadangan lama:", err);
+            }
+          }
+        });
+
+        for (const t of result.tournaments) {
+          const detailRes = await fetch(`${serverUrl}/api/desktop/download-tournament/${t.id_turnamen}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          const detailResult = await detailRes.json();
+          if (detailRes.status === 200 && detailResult.status) {
+            saveLocalBackup(t.id_turnamen, detailResult);
+            console.log(`[Auto-Backup] Berhasil mencadangkan turnamen: ${t.nama_turnamen}`);
+          }
+        }
+        renderAutoBackupsUI();
+      }
+    } catch (e) {
+      console.warn("[Auto-Backup] Gagal melakukan pencadangan otomatis di latar belakang:", e);
+    }
+  }
+
+  // Render cadangan lokal yang sudah ada sebelumnya
+  renderAutoBackupsUI();
+
+  // Jalankan backup background (jika online & login terverifikasi)
+  runBackgroundBackup();
 });
