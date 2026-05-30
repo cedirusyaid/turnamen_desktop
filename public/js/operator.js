@@ -276,13 +276,14 @@ btnDownload.addEventListener('click', async () => {
       pinTournamentName.textContent = result.tournament.nama_turnamen;
       pinMatchSelect.innerHTML = '';
       
-      if (result.matches.length === 0) {
+      const activeMatches = (result.matches || []).filter(m => m.status_pertandingan !== 'selesai');
+      if (activeMatches.length === 0) {
         const opt = document.createElement('option');
         opt.value = "";
         opt.textContent = "-- Tidak ada pertandingan berjalan / belum selesai --";
         pinMatchSelect.appendChild(opt);
       } else {
-        result.matches.forEach(m => {
+        activeMatches.forEach(m => {
           const opt = document.createElement('option');
           opt.value = m.id_jadwal;
           opt.textContent = formatMatchOptionText(m);
@@ -323,13 +324,14 @@ function handleOfflinePINVerification(token, serverUrl) {
     pinTournamentName.textContent = `${targetBackup.nama_turnamen} (Offline)`;
     pinMatchSelect.innerHTML = '';
     
-    if (verifiedTournamentData.matches.length === 0) {
+    const activeMatches = (verifiedTournamentData.matches || []).filter(m => m.status_pertandingan !== 'selesai');
+    if (activeMatches.length === 0) {
       const opt = document.createElement('option');
       opt.value = "";
-      opt.textContent = "-- Tidak ada pertandingan --";
+      opt.textContent = "-- Tidak ada pertandingan berjalan / belum selesai --";
       pinMatchSelect.appendChild(opt);
     } else {
-      verifiedTournamentData.matches.forEach(m => {
+      activeMatches.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m.id_jadwal;
         opt.textContent = formatMatchOptionText(m);
@@ -594,6 +596,8 @@ function renderRoster() {
 
     players.forEach(p => {
       let actionButtons = '';
+      const displayName = p.nama_punggung || p.nama;
+
       if (p.status === 'active') {
         if (matchData.cabor_events && matchData.cabor_events.length > 0) {
           matchData.cabor_events.forEach(ev => {
@@ -649,7 +653,7 @@ function renderRoster() {
         <div class="player-row">
           <div class="player-info">
             <span class="player-number">#${p.nomor_punggung || '-'}</span>
-            <span class="player-name" title="${p.nama}">${p.nama}</span>
+            <span class="player-name" title="${p.nama}">${displayName}</span>
           </div>
           <div class="player-actions">
             ${p.status === 'active' ? actionButtons + subBtn : subBtn}
@@ -698,6 +702,25 @@ btnTimerStart.addEventListener('click', () => {
     stopTimeout();
   }
 
+  let waktuPelaksanaanUpdate = null;
+  if (matchData && (!matchData.waktu || matchData.waktu === "" || matchData.waktu === "0000-00-00 00:00:00" || matchData.waktu === "TBA")) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    waktuPelaksanaanUpdate = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+    matchData.waktu = waktuPelaksanaanUpdate;
+    localStorage.setItem('active_match_data', JSON.stringify(matchData));
+
+    if (matchData.id_turnamen) {
+      updateMatchInLocalBackup(matchData.id_turnamen, matchData.id_jadwal, waktuPelaksanaanUpdate);
+    }
+  }
+
   btnTimerStart.disabled = true;
   btnTimerStop.disabled = false;
 
@@ -736,13 +759,17 @@ btnTimerStart.addEventListener('click', () => {
   }, 1000);
 
   if (matchData && matchData.id_jadwal) {
-    queueSyncAction('/api/desktop/update-timer', { 
+    const timerPayload = { 
       id_jadwal: matchData.id_jadwal, 
       seconds: timerSeconds, 
       is_running: 1,
       action: 'start',
       current_period: matchData.current_period
-    });
+    };
+    if (waktuPelaksanaanUpdate) {
+      timerPayload.waktu_pelaksanaan = waktuPelaksanaanUpdate;
+    }
+    queueSyncAction('/api/desktop/update-timer', timerPayload);
   }
 });
 
@@ -1101,6 +1128,45 @@ btnResetFoulB.addEventListener('click', () => {
     queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB, foul_a: matchData.foul_a || 0, foul_b: 0 });
   }
 });
+
+window.setAllAsStarter = function(team) {
+  if (!matchData) return;
+  if (!confirm(`Masukkan semua pemain ${team === 'A' ? matchData.team_a_nama : matchData.team_b_nama} sebagai Starter (Menit 0)?`)) return;
+
+  const players = team === 'A' ? matchData.players_a : matchData.players_b;
+  const teamId = team === 'A' ? matchData.id_team_a : matchData.id_team_b;
+
+  if (players && players.length > 0) {
+    players.forEach(p => {
+      if (p.status !== 'active') {
+        p.status = 'active';
+        
+        const eventPayload = {
+          id_event: generateUUID(),
+          id_jadwal: matchData.id_jadwal,
+          id_personil: p.id_personil,
+          id_team: teamId,
+          jenis: 'starter',
+          menit: 0,
+          playerName: p.nama,
+          teamType: team,
+          target_poin: 'none',
+          nilai: 0,
+          periode: matchData.current_period || 'Babak 1'
+        };
+
+        if (!matchData.events) matchData.events = [];
+        matchData.events.unshift(eventPayload);
+        queueSyncAction('/api/desktop/add-event', eventPayload);
+      }
+    });
+
+    localStorage.setItem('active_match_data', JSON.stringify(matchData));
+    renderRoster();
+    renderTimeline();
+    broadcastState();
+  }
+};
 
 function saveMatchScoreLocally() {
   matchData.skor_a = currentScoreA;
@@ -1652,6 +1718,7 @@ function renderTimeline() {
     
     let badgeClass = "gol";
     let badgeText = "Event";
+    const customIcon = e.ikon || '';
     
     if (e.jenis === 'gol') {
       badgeClass = "gol";
@@ -1691,9 +1758,11 @@ function renderTimeline() {
       badgeText = "Keluar";
     }
 
+    const iconHtml = customIcon ? `<span class="me-1">${customIcon}</span>` : '';
+
     item.innerHTML = `
       <span class="timeline-time">${e.menit}'</span>
-      <span class="timeline-badge ${badgeClass}">${badgeText}</span>
+      <span class="timeline-badge ${badgeClass}">${iconHtml}${badgeText}</span>
       <span class="timeline-text"><strong>${e.playerName || '(Nama Kosong)'}</strong> (${e.teamType === 'A' ? matchData.team_a_nama : matchData.team_b_nama})</span>
       <div style="display: flex; gap: 5px;">
         <button class="timeline-edit" onclick="editEventLocally('${e.id_event}')" style="background: transparent; color: #ffa502; border: none; border-radius: 4px; padding: 0.2rem 0.5rem; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 3px;"><i class="fa fa-edit"></i> Edit</button>
@@ -2020,6 +2089,28 @@ function saveLocalBackup(tournamentId, data) {
   }
 }
 
+function updateMatchInLocalBackup(tournamentId, matchId, waktuVal) {
+  const dir = getBackupDirectory();
+  if (!dir) return;
+  try {
+    const filePath = path.join(dir, `tournament_${tournamentId}.json`);
+    if (fs && fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      const data = JSON.parse(content);
+      if (data && Array.isArray(data.matches)) {
+        const match = data.matches.find(m => m.id_jadwal == matchId);
+        if (match) {
+          match.waktu = waktuVal;
+          fs.writeFileSync(filePath, JSON.stringify(data), 'utf8');
+          console.log(`[Backup] Berhasil memperbarui waktu pelaksanaan match ${matchId} di backup lokal.`);
+        }
+      }
+    }
+  } catch (e) {
+    console.error(`[Backup] Gagal memperbarui backup lokal untuk match ${matchId}:`, e);
+  }
+}
+
 function getLocalBackupsList() {
   const dir = getBackupDirectory();
   if (!dir) return [];
@@ -2102,14 +2193,22 @@ window.addEventListener('load', () => {
           if (data && data.status && data.tournament && Array.isArray(data.matches)) {
             offlineTournamentData = data;
             
-            // Populate select
+            // Populate select, excluding finished matches
             offlineMatchSelect.innerHTML = '';
-            data.matches.forEach(m => {
+            const activeMatches = (data.matches || []).filter(m => m.status_pertandingan !== 'selesai');
+            if (activeMatches.length === 0) {
               const opt = document.createElement('option');
-              opt.value = m.id_jadwal;
-              opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+              opt.value = "";
+              opt.textContent = "-- Tidak ada pertandingan berjalan / belum selesai --";
               offlineMatchSelect.appendChild(opt);
-            });
+            } else {
+              activeMatches.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id_jadwal;
+                opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+                offlineMatchSelect.appendChild(opt);
+              });
+            }
 
             offlineMatchSelector.style.display = 'block';
             showSetupStatus(`Berhasil memuat turnamen: ${data.tournament.nama_turnamen} (${data.matches.length} pertandingan). Silakan pilih pertandingan dan klik tombol hijau.`, "success");
@@ -2217,14 +2316,22 @@ window.addEventListener('load', () => {
         const data = JSON.parse(selectedOpt.dataset.json);
         loadedBackupData = data;
         
-        // Populate matches of this backup
+        // Populate matches of this backup, excluding finished matches
         localBackupsMatchSelect.innerHTML = '';
-        data.matches.forEach(m => {
+        const activeMatches = (data.matches || []).filter(m => m.status_pertandingan !== 'selesai');
+        if (activeMatches.length === 0) {
           const opt = document.createElement('option');
-          opt.value = m.id_jadwal;
-          opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+          opt.value = "";
+          opt.textContent = "-- Tidak ada pertandingan berjalan / belum selesai --";
           localBackupsMatchSelect.appendChild(opt);
-        });
+        } else {
+          activeMatches.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id_jadwal;
+            opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+            localBackupsMatchSelect.appendChild(opt);
+          });
+        }
 
         localBackupsMatchWrapper.style.display = 'block';
       } catch (err) {
