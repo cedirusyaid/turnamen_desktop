@@ -880,6 +880,29 @@ if (btnFinishMatch) {
       
       matchData.status_pertandingan = 'selesai';
       broadcastState();
+
+      // Update local backup with the finished status
+      if (matchData.id_turnamen && fs) {
+        const dir = getBackupDirectory();
+        if (dir) {
+          try {
+            const filePath = path.join(dir, `tournament_${matchData.id_turnamen}.json`);
+            if (fs.existsSync(filePath)) {
+              const content = fs.readFileSync(filePath, 'utf8');
+              const data = JSON.parse(content);
+              if (data && Array.isArray(data.matches)) {
+                const match = data.matches.find(m => m.id_jadwal == matchData.id_jadwal);
+                if (match) {
+                  match.status_pertandingan = 'selesai';
+                  fs.writeFileSync(filePath, JSON.stringify(data), 'utf8');
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Gagal memperbarui status selesai di backup lokal:", e);
+          }
+        }
+      }
       
       queueSyncAction('/api/desktop/update-timer', {
         id_jadwal: matchData.id_jadwal,
@@ -889,8 +912,27 @@ if (btnFinishMatch) {
         current_period: matchData.current_period
       });
       
+      // Hapus data pertandingan aktif agar tidak dimuat lagi saat load/refresh
+      localStorage.removeItem('active_match_data');
+
+      if (ipcRenderer) {
+        ipcRenderer.send('close-scoreboard');
+      }
+
+      // Tampilkan setup modal kembali
+      mainLayout.style.display = 'none';
+      setupModal.style.display = 'flex';
+
       alert('Pertandingan berhasil diselesaikan!');
-      location.reload();
+
+      // Auto refresh list pertandingan menggunakan token yang tersimpan
+      const savedToken = localStorage.getItem('temp_token');
+      if (savedToken) {
+        authTokenInput.value = savedToken;
+        setTimeout(() => {
+          btnDownload.click();
+        }, 1500);
+      }
     }
   });
 }
