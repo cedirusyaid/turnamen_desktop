@@ -79,6 +79,7 @@ const timerSec = document.getElementById('timer-seconds');
 const btnTimerStart = document.getElementById('btn-timer-start');
 const btnTimerStop = document.getElementById('btn-timer-stop');
 const btnTimerReset = document.getElementById('btn-timer-reset');
+const btnFinishMatch = document.getElementById('btn-finish-match');
 
 const scoreAUp = document.getElementById('btn-score-a-up');
 const scoreBUp = document.getElementById('btn-score-b-up');
@@ -545,6 +546,7 @@ function initMatchPanel() {
 
   updateOnlineStatus();
   broadcastState();
+  lockUI();
 }
 
 function restoreRosterStatus() {
@@ -834,6 +836,38 @@ btnTimerReset.addEventListener('click', () => {
   }
 });
 
+if (btnFinishMatch) {
+  btnFinishMatch.addEventListener('click', () => {
+    if (!matchData) return;
+    if (confirm('Apakah Anda yakin ingin MENYELESAIKAN pertandingan ini? Skor akan disinkronkan, waktu di-set 0, dan status akan diubah menjadi "Selesai".')) {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      timerSeconds = 0;
+      updateTimerDisplay();
+      
+      btnTimerStart.disabled = true;
+      btnTimerStop.disabled = true;
+      btnFinishMatch.disabled = true;
+      
+      matchData.status_pertandingan = 'selesai';
+      broadcastState();
+      
+      queueSyncAction('/api/desktop/update-timer', {
+        id_jadwal: matchData.id_jadwal,
+        action: 'finish',
+        seconds: 0,
+        is_running: 0,
+        current_period: matchData.current_period
+      });
+      
+      alert('Pertandingan berhasil diselesaikan!');
+      location.reload();
+    }
+  });
+}
+
 // 7. FUNGSI BROADCAST KE VIDEOTRON
 function broadcastState() {
   let displaySeconds = timerSeconds;
@@ -873,6 +907,21 @@ function broadcastState() {
       timeoutBy: timeoutBy
     }
   });
+  lockUI();
+}
+
+function lockUI() {
+  if (matchData && matchData.status_pertandingan === 'selesai') {
+    // Disable all interactive elements
+    document.querySelectorAll('button, input, select, textarea').forEach(el => {
+      el.disabled = true;
+    });
+    // Show overlay dimming effect if exists
+    const overlay = document.getElementById('ui-lock-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+  }
 }
 
 // 8. UPDATE SKOR UTAMA
