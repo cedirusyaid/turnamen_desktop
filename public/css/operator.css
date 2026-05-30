@@ -530,6 +530,26 @@ button {
   color: #fff;
 }
 
+.btn-player-action.rebound {
+  background: rgba(255, 159, 67, 0.2);
+  color: #ff9f43;
+}
+
+.btn-player-action.rebound:hover {
+  background: #ff9f43;
+  color: #fff;
+}
+
+.btn-player-action.block {
+  background: rgba(190, 46, 221, 0.2);
+  color: #be2edd;
+}
+
+.btn-player-action.block:hover {
+  background: #be2edd;
+  color: #fff;
+}
+
 .btn-player-sub {
   background: transparent;
   color: #d1ccc0;

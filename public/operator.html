@@ -144,10 +144,14 @@
               <button id="btn-timer-stop" class="btn-warning" disabled>Pause</button>
               <button id="btn-timer-reset" class="btn-reset">Reset</button>
             </div>
-            
-            <button id="btn-timeout-trigger" class="btn-primary" style="margin-top: 15px; background: #ffa502; box-shadow: 0 5px 15px rgba(255, 165, 2, 0.3); border-radius: 50px; font-weight: 800;">
-              <i class="fa fa-clock"></i> MULAI TIMEOUT
-            </button>
+            <div style="display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 15px;">
+              <button id="btn-timeout-trigger" class="btn-primary" style="flex: 1; background: #ffa502; box-shadow: 0 5px 15px rgba(255, 165, 2, 0.3); border-radius: 50px; font-weight: 800; margin-top: 0;">
+                <i class="fa fa-clock"></i> TIMEOUT
+              </button>
+              <button id="btn-buzzer-trigger" class="btn-danger" style="flex: 1; background: #ff4757; box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3); border-radius: 50px; font-weight: 800; border: none; color: white; cursor: pointer; padding: 10px 20px;">
+                <i class="fa fa-volume-up"></i> BUZZER
+              </button>
+            </div>
             
             <div class="period-control-wrapper" style="margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;">
               <span style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Sesi / Babak:</span>
@@ -173,7 +177,6 @@
               <h3 id="team-title-a">Tim A</h3>
               <div class="btn-group-score">
                 <button id="btn-score-a-up" class="btn-score-up" title="Tambah Skor">+1</button>
-                <button id="btn-score-a-down" class="btn-score-down" title="Kurangi Skor">-1</button>
               </div>
             </div>
             
@@ -209,7 +212,6 @@
               <h3 id="team-title-b">Tim B</h3>
               <div class="btn-group-score">
                 <button id="btn-score-b-up" class="btn-score-up" title="Tambah Skor">+1</button>
-                <button id="btn-score-b-down" class="btn-score-down" title="Kurangi Skor">-1</button>
               </div>
             </div>
             
@@ -282,6 +284,34 @@
       </div>
     </div>
 
+    <!-- MODAL EDIT LOG KEJADIAN -->
+    <div id="edit-event-modal" class="modal-overlay" style="display: none;">
+      <div class="setup-box" style="text-align: left; max-width: 420px; box-sizing: border-box;">
+        <h2 style="margin-top: 0; color: #00d2ff;"><i class="fa fa-edit"></i> Lengkapi / Edit Kejadian</h2>
+        <p id="edit-modal-team-label" style="font-weight: bold; margin-bottom: 1.5rem; color: #ff007f; margin-top: 0.2rem;">Tim: A</p>
+        
+        <input type="hidden" id="edit-event-id">
+        <input type="hidden" id="edit-event-team">
+        
+        <div class="form-group" style="margin-bottom: 1.2rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: #fff;">Pemain</label>
+          <select id="edit-event-player-select" style="width: 100%; padding: 12px; background: rgba(8, 10, 21, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem;">
+            <!-- Options populated dynamically -->
+          </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1.8rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: #fff;">Menit Kejadian</label>
+          <input type="number" id="edit-event-minute" min="0" max="120" style="width: 100%; padding: 12px; background: rgba(8, 10, 21, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 10px;">
+          <button type="button" id="btn-edit-event-cancel" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem;">Batal</button>
+          <button type="button" id="btn-edit-event-save" style="flex: 1; padding: 12px; background: #00d2ff; color: #0d0f1a; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem;">Simpan</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL TIMEOUT -->
     <div id="timeout-modal" class="modal-overlay" style="display: none;">
       <div class="setup-box" style="text-align: left; max-width: 400px; box-sizing: border-box;">
@@ -322,6 +352,7 @@
       </div>
     </div>
 
+  <audio id="audio-buzzer" src="audio/buzzer.mp3" preload="auto"></audio>
   <script src="js/operator.js"></script>
 </body>
 </html>

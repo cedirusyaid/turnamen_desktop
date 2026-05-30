@@ -228,10 +228,10 @@ body {
 
 .sb-timer {
   font-family: 'Orbitron', sans-serif;
-  font-size: 38vh;
+  font-size: 44vh;
   font-weight: 900;
   color: #ecc94b;
-  letter-spacing: -2vh;
+  letter-spacing: -0.5vh;
   text-shadow: 0 0 50px rgba(236, 201, 75, 0.4);
   line-height: 1;
 }
@@ -329,4 +329,25 @@ body {
 @keyframes pulse {
   0% { transform: scale(1); text-shadow: 0 0 30px #2ed573; }
   100% { transform: scale(1.05); text-shadow: 0 0 60px #2ed573; }
+}
+
+@keyframes strobe {
+  0%, 100% { background: rgba(5, 6, 11, 0.96); }
+  50% { background: rgba(13, 27, 42, 0.98); }
+}
+
+@keyframes scorePop {
+  0% { transform: scale(1); color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+  50% { transform: scale(1.25); color: #ecc94b; text-shadow: 0 0 50px rgba(236, 201, 75, 1); }
+  100% { transform: scale(1); color: #fff; text-shadow: 0 0 40px rgba(255, 255, 255, 0.3); }
+}
+
+.score-pop {
+  display: inline-block;
+  animation: scorePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.event-overlay.active {
+  display: flex;
+  animation: strobe 1.5s infinite;
 }

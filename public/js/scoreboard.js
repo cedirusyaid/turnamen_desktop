@@ -29,6 +29,8 @@ const overlayPlayer = document.getElementById('overlay-player');
 const overlayTeam = document.getElementById('overlay-team');
 
 let overlayTimeout = null;
+let prevScoreA = 0;
+let prevScoreB = 0;
 
 // --- SIDE SWAP LOGIC ---
 window.toggleSwap = function() {
@@ -127,8 +129,21 @@ function updateScoreboardUI(data) {
   sbTeamA.textContent = data.teamAName || 'TEAM A';
   sbTeamB.textContent = data.teamBName || 'TEAM B';
 
-  sbScoreA.textContent = data.scoreA;
-  sbScoreB.textContent = data.scoreB;
+  const newScoreA = parseInt(data.scoreA) || 0;
+  const newScoreB = parseInt(data.scoreB) || 0;
+
+  if (newScoreA > prevScoreA) {
+    animateScoreChange(sbScoreA);
+  }
+  if (newScoreB > prevScoreB) {
+    animateScoreChange(sbScoreB);
+  }
+
+  prevScoreA = newScoreA;
+  prevScoreB = newScoreB;
+
+  sbScoreA.textContent = newScoreA;
+  sbScoreB.textContent = newScoreB;
   
   // Update Set Scores
   if (data.tipe_skor === 'set') {
@@ -143,7 +158,7 @@ function updateScoreboardUI(data) {
   } else {
     if (setScoresPanel) setScoresPanel.style.display = 'none';
     sbTimer.textContent = data.timerText;
-    sbTimer.style.fontSize = '10vh';
+    sbTimer.style.fontSize = '44vh';
   }
 
   // Sync Timeout State
@@ -212,6 +227,13 @@ function triggerGoalCelebration(data) {
   overlayTimeout = setTimeout(() => {
     eventOverlay.classList.remove('active');
   }, 5000);
+}
+
+function animateScoreChange(el) {
+  if (!el) return;
+  el.classList.remove('score-pop');
+  void el.offsetWidth; // Trigger reflow
+  el.classList.add('score-pop');
 }
 
 // REQUEST SEEDED STATE ON LOAD
