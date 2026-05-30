@@ -166,6 +166,43 @@ function parseServerUrl(inputUrl) {
   }
 }
 
+function formatMatchOptionText(m) {
+  // Format status text
+  let statusText = "Belum Dimulai";
+  if (m.status_pertandingan === "berjalan") {
+    statusText = "Sedang Berlangsung";
+  } else if (m.status_pertandingan === "selesai") {
+    statusText = "Selesai";
+  }
+
+  // Format waktu str
+  let waktuStr = "-";
+  if (m.waktu) {
+    try {
+      const dateObj = new Date(m.waktu);
+      const options = { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false
+      };
+      waktuStr = dateObj.toLocaleString('id-ID', options).replace(',', '');
+    } catch (e) {
+      waktuStr = m.waktu;
+    }
+  }
+
+  // Format skor info jika berjalan / selesai
+  let scoreInfo = "";
+  if (m.status_pertandingan === "berjalan" || m.status_pertandingan === "selesai") {
+    scoreInfo = ` (${m.skor_a ?? m.skor_1 ?? 0} - ${m.skor_b ?? m.skor_2 ?? 0})`;
+  }
+
+  return `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}${scoreInfo} | Rencana: ${waktuStr} | Status: ${statusText}`;
+}
+
 // 4. DOWNLOAD DATA PERTANDINGAN BERDASARKAN PIN
 btnDownload.addEventListener('click', async () => {
   const serverUrl = parseServerUrl(serverUrlInput.value);
@@ -249,7 +286,7 @@ btnDownload.addEventListener('click', async () => {
         result.matches.forEach(m => {
           const opt = document.createElement('option');
           opt.value = m.id_jadwal;
-          opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+          opt.textContent = formatMatchOptionText(m);
           pinMatchSelect.appendChild(opt);
         });
       }
@@ -290,13 +327,13 @@ function handleOfflinePINVerification(token, serverUrl) {
     if (verifiedTournamentData.matches.length === 0) {
       const opt = document.createElement('option');
       opt.value = "";
-      opt.textContent = "-- Tidak ada pertandingan berjalan / belum selesai --";
+      opt.textContent = "-- Tidak ada pertandingan --";
       pinMatchSelect.appendChild(opt);
     } else {
       verifiedTournamentData.matches.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m.id_jadwal;
-        opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+        opt.textContent = formatMatchOptionText(m);
         pinMatchSelect.appendChild(opt);
       });
     }
