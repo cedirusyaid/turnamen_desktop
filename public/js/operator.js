@@ -2047,6 +2047,13 @@ btnResetMatch.addEventListener('click', () => {
     if (ipcRenderer) {
       ipcRenderer.send('close-scoreboard');
     }
+
+    // Auto refresh matches list using saved token/PIN
+    const savedToken = localStorage.getItem('temp_token');
+    if (savedToken) {
+      authTokenInput.value = savedToken;
+      btnDownload.click();
+    }
   }
 });
 
@@ -2166,12 +2173,22 @@ window.addEventListener('load', () => {
     serverUrlInput.value = 'https://turnamen.info';
   }
 
+  // Restore token/PIN from localStorage if exists
+  const savedToken = localStorage.getItem('temp_token');
+  if (savedToken) {
+    authTokenInput.value = savedToken;
+  }
+
   const savedData = localStorage.getItem('active_match_data');
   if (savedData) {
     matchData = JSON.parse(savedData);
     setupModal.style.display = 'none';
     mainLayout.style.display = 'flex';
     initMatchPanel();
+  } else if (savedToken) {
+    // Automatically trigger match list loading on startup if PIN exists
+    console.log("[Setup] Menemukan token tersimpan, memuat data pertandingan secara otomatis...");
+    btnDownload.click();
   }
 
   // Handle Offline Tournament Import
