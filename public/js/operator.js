@@ -42,10 +42,13 @@ const authTokenInput = document.getElementById('auth-token');
 const btnDownload = document.getElementById('btn-download');
 const setupStatus = document.getElementById('setup-status');
 
-const matchSelectorContainer = document.getElementById('match-selector-container');
-const matchSelect = document.getElementById('match-select');
-const btnStartOperator = document.getElementById('btn-start-operator');
-const matchSelectTitle = document.getElementById('match-select-title');
+const pinMatchSelector = document.getElementById('pin-match-selector');
+const pinTournamentName = document.getElementById('pin-tournament-name');
+const pinMatchSelect = document.getElementById('pin-match-select');
+const btnStartPinMatch = document.getElementById('btn-start-pin-match');
+
+let verifiedTournamentData = null; 
+let isVerifiedOffline = false;
 
 // New Auth Selectors
 const tabAccountLogin = document.getElementById('tab-login-account');
@@ -182,8 +185,16 @@ btnDownload.addEventListener('click', async () => {
   btnDownload.textContent = "Menghubungkan & Memverifikasi...";
   showSetupStatus("Memverifikasi Kode Akses...", "info");
 
+  // Jika Offline, coba hubungkan secara lokal
+  if (!navigator.onLine) {
+    handleOfflinePINVerification(token, serverUrl);
+    btnDownload.disabled = false;
+    btnDownload.textContent = "Koneksikan & Buka Pertandingan";
+    return;
+  }
+
   try {
-    // Verifikasi Token dan Ambil Detail Pertandingan
+    // Verifikasi Token Turnamen dan Ambil Detail Pertandingan Ongoing
     const verifyRes = await fetch(`${serverUrl}/api/desktop/verify-token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -194,19 +205,157 @@ btnDownload.addEventListener('click', async () => {
 
     if (verifyRes.status === 200 && result.status) {
       const apiToken = result.api_token;
-      const matchId = result.match.id_jadwal;
+      const tournamentId = result.tournament.id_turnamen;
 
       // Simpan variabel koneksi
       localStorage.setItem('temp_server_url', serverUrl);
       localStorage.setItem('temp_token', apiToken);
 
-      showSetupStatus("PIN Valid! Mengunduh detail pertandingan...", "info");
+      showSetupStatus("PIN Valid! Mengunduh paket turnamen untuk cadangan offline...", "info");
 
-      // Setelah verifikasi berhasil, ambil full match data menggunakan id_jadwal
+      // Download full tournament package secara background untuk cadangan offline
+      try {
+        const responseTour = await fetch(`${serverUrl}/api/desktop/download-tournament/${tournamentId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const tourResult = await responseTour.json();
+        if (responseTour.status === 200 && tourResult.status) {
+          // Tambahkan PIN token agar file backup lokal ini bisa diakses offline lewat PIN yang sama
+          tourResult.operator_token = token;
+          saveLocalBackup(tournamentId, tourResult);
+          console.log("[Setup] Berhasil mencadangkan turnamen secara lokal untuk mode offline.");
+        }
+      } catch (errTour) {
+        console.warn("[Setup] Gagal mendownload paket cadangan offline secara background:", errTour);
+      }
+
+      // Tampilkan list pertandingan di dropdown selector
+      verifiedTournamentData = result;
+      isVerifiedOffline = false;
+
+      pinTournamentName.textContent = result.tournament.nama_turnamen;
+      pinMatchSelect.innerHTML = '';
+      
+      if (result.matches.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = "-- Tidak ada pertandingan berjalan / belum selesai --";
+        pinMatchSelect.appendChild(opt);
+      } else {
+        result.matches.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id_jadwal;
+          opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+          pinMatchSelect.appendChild(opt);
+        });
+      }
+
+      pinMatchSelector.style.display = 'block';
+      showSetupStatus("Koneksi berhasil! Silakan pilih pertandingan turnamen di bawah.", "success");
+    } else {
+      showSetupStatus(result.message || "Kode Akses tidak valid atau sudah kedaluwarsa.", "error");
+    }
+  } catch (error) {
+    console.error(error);
+    // Jika koneksi server gagal (tapi browser mendeteksi online), coba verifikasi secara lokal sebagai fallback
+    console.log("[Setup] Gagal konek server. Fallback ke verifikasi PIN lokal offline.");
+    handleOfflinePINVerification(token, serverUrl);
+  } finally {
+    btnDownload.disabled = false;
+    btnDownload.textContent = "Koneksikan & Buka Pertandingan";
+  }
+});
+
+// Helper Verifikasi PIN secara Offline dari cadangan lokal
+function handleOfflinePINVerification(token, serverUrl) {
+  const backups = getLocalBackupsList();
+  // Cari backup yang memiliki operator_token == token
+  const targetBackup = backups.find(b => b.data && (b.data.operator_token === token || b.operator_token === token));
+  
+  if (targetBackup) {
+    verifiedTournamentData = targetBackup.data;
+    isVerifiedOffline = true;
+
+    // Simpan variabel koneksi fallback
+    localStorage.setItem('temp_server_url', serverUrl);
+    localStorage.setItem('temp_token', token);
+
+    pinTournamentName.textContent = `${targetBackup.nama_turnamen} (Offline)`;
+    pinMatchSelect.innerHTML = '';
+    
+    if (verifiedTournamentData.matches.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = "";
+      opt.textContent = "-- Tidak ada pertandingan berjalan / belum selesai --";
+      pinMatchSelect.appendChild(opt);
+    } else {
+      verifiedTournamentData.matches.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id_jadwal;
+        opt.textContent = `[${m.kategori_nama} - ${m.fase}] ${m.team_a_nama} vs ${m.team_b_nama}`;
+        pinMatchSelect.appendChild(opt);
+      });
+    }
+
+    pinMatchSelector.style.display = 'block';
+    showSetupStatus("Terhubung secara Offline ke cadangan laptop!", "success");
+  } else {
+    showSetupStatus("PIN tidak ditemukan dalam cadangan laptop! Hubungkan internet untuk memverifikasi pertama kali.", "error");
+  }
+}
+
+// 4b. START MATCH BERDASARKAN SELEKTOR PIN
+btnStartPinMatch.addEventListener('click', async () => {
+  const matchId = pinMatchSelect.value;
+  if (!matchId) {
+    showSetupStatus("Pilih pertandingan terlebih dahulu!", "error");
+    return;
+  }
+
+  const serverUrl = localStorage.getItem('temp_server_url');
+  const token = localStorage.getItem('temp_token');
+
+  btnStartPinMatch.disabled = true;
+  btnStartPinMatch.textContent = "Memuat Pertandingan...";
+
+  if (isVerifiedOffline) {
+    // Mode Offline: Ambil langsung dari verifiedTournamentData (data backup lokal)
+    const match = verifiedTournamentData.matches.find(m => m.id_jadwal == matchId);
+    if (!match) {
+      showSetupStatus("Pertandingan tidak ditemukan di file cadangan!", "error");
+      btnStartPinMatch.disabled = false;
+      btnStartPinMatch.textContent = "Mulai Pertandingan";
+      return;
+    }
+
+    matchData = match;
+    matchData.serverUrl = serverUrl;
+    matchData.token = token;
+
+    localStorage.setItem('active_match_data', JSON.stringify(matchData));
+    localStorage.setItem('sync_queue', JSON.stringify([]));
+
+    initMatchPanel();
+    updateOnlineStatus();
+
+    showSetupStatus("Memulai pertandingan secara offline...", "success");
+    setTimeout(() => {
+      setupModal.style.display = 'none';
+      mainLayout.style.display = 'flex';
+      btnStartPinMatch.disabled = false;
+      btnStartPinMatch.textContent = "Mulai Pertandingan";
+    }, 1000);
+  } else {
+    // Mode Online: Ambil langsung dari server
+    try {
       const responseMatch = await fetch(`${serverUrl}/api/desktop/download-match/${matchId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -216,30 +365,30 @@ btnDownload.addEventListener('click', async () => {
       if (responseMatch.status === 200 && fullResult.status) {
         matchData = fullResult.data;
         matchData.serverUrl = serverUrl;
-        matchData.token = apiToken;
+        matchData.token = token;
         
-        // Simpan konfigurasi ke localStorage
         localStorage.setItem('active_match_data', JSON.stringify(matchData));
         localStorage.setItem('sync_queue', JSON.stringify([]));
 
         initMatchPanel();
-        showSetupStatus("Download Berhasil! Memulai operator...", "success");
+        showSetupStatus("Pertandingan berhasil dimuat! Memulai panel operator...", "success");
         setTimeout(() => {
           setupModal.style.display = 'none';
           mainLayout.style.display = 'flex';
+          btnStartPinMatch.disabled = false;
+          btnStartPinMatch.textContent = "Mulai Pertandingan";
         }, 1000);
       } else {
-        showSetupStatus(fullResult.message || "Gagal mengunduh data penuh pertandingan.", "error");
+        showSetupStatus(fullResult.message || "Gagal memuat pertandingan dari server.", "error");
+        btnStartPinMatch.disabled = false;
+        btnStartPinMatch.textContent = "Mulai Pertandingan";
       }
-    } else {
-      showSetupStatus(result.message || "Kode Akses tidak valid atau sudah kedaluwarsa.", "error");
+    } catch (err) {
+      console.error(err);
+      showSetupStatus("Gagal menghubungi server untuk memuat detail laga.", "error");
+      btnStartPinMatch.disabled = false;
+      btnStartPinMatch.textContent = "Mulai Pertandingan";
     }
-  } catch (error) {
-    console.error(error);
-    showSetupStatus("Gagal terhubung ke server. Pastikan Server URL benar.", "error");
-  } finally {
-    btnDownload.disabled = false;
-    btnDownload.textContent = "Koneksikan & Buka Pertandingan";
   }
 });
 
@@ -1548,6 +1697,10 @@ function saveLocalBackup(tournamentId, data) {
   const dir = getBackupDirectory();
   if (!dir) return;
   try {
+    const token = localStorage.getItem('temp_token');
+    if (token && !data.operator_token) {
+      data.operator_token = token;
+    }
     const filePath = path.join(dir, `tournament_${tournamentId}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data), 'utf8');
   } catch (e) {
@@ -1736,7 +1889,7 @@ window.addEventListener('load', () => {
       localBackupsSelect.appendChild(opt);
     });
 
-    localBackupsContainer.style.display = 'block';
+    localBackupsContainer.style.display = 'none';
   }
 
   if (localBackupsSelect) {

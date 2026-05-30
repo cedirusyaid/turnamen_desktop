@@ -30,11 +30,11 @@
         
         <button id="btn-download" class="btn-primary">Koneksikan & Buka Pertandingan</button>
         
-        <div style="margin: 20px 0; border-top: 1px solid rgba(255,255,255,0.1); position: relative; text-align: center;">
+        <div style="margin: 20px 0; border-top: 1px solid rgba(255,255,255,0.1); position: relative; text-align: center; display: none;">
           <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #121425; padding: 0 10px; font-size: 0.75rem; color: #888; letter-spacing: 1px;">ATAU OFFLINE</span>
         </div>
 
-        <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+        <div class="form-group" style="text-align: left; margin-bottom: 15px; display: none;">
           <label>Muat Paket Kejuaraan (.json)</label>
           <input type="file" id="offline-file-input" accept=".json" style="width: 100%; font-size: 0.85rem; padding: 8px; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.2); border-radius: 6px; color: #fff; box-sizing: border-box;">
         </div>
@@ -45,6 +45,16 @@
             <!-- Matches populated here -->
           </select>
           <button id="btn-start-offline" class="btn-primary" style="background: #2ed573;">Mulai Laga Offline</button>
+        </div>
+
+        <!-- Match Selector Container (PIN-based) -->
+        <div id="pin-match-selector" class="form-group" style="display: none; text-align: left; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+          <label style="color: #00d2ff; font-weight: bold;"><i class="fa fa-list"></i> Pilih Pertandingan Turnamen</label>
+          <p id="pin-tournament-name" style="font-size: 0.85rem; color: #fff; font-weight: bold; margin: 5px 0 12px 0; background: rgba(0, 210, 255, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid #00d2ff;"></p>
+          <select id="pin-match-select" style="width: 100%; padding: 10px; background: #161a2e; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer; box-sizing: border-box; margin-bottom: 15px; outline: none;">
+            <!-- Matches populated here -->
+          </select>
+          <button id="btn-start-pin-match" class="btn-primary" style="background: #2ed573; color: #fff;">Mulai Pertandingan</button>
         </div>
 
         <div id="local-backups-container" class="form-group" style="display: none; text-align: left; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
