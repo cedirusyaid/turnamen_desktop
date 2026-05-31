@@ -299,6 +299,7 @@ function updateScoreboardUI(data) {
   }
 
   if (data.hasFoul) {
+    if (container) container.classList.add('has-foul');
     if (foulBoxA) foulBoxA.style.display = 'inline-block';
     if (foulBoxB) foulBoxB.style.display = 'inline-block';
     
@@ -311,6 +312,7 @@ function updateScoreboardUI(data) {
         foulValB.className = data.foulB >= 5 ? 'foul-val text-danger' : 'foul-val text-warning';
     }
   } else {
+    if (container) container.classList.remove('has-foul');
     if (foulBoxA) foulBoxA.style.display = 'none';
     if (foulBoxB) foulBoxB.style.display = 'none';
   }

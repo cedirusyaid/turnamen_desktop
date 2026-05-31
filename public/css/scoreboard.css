@@ -132,7 +132,7 @@ body {
   display: grid;
   grid-template-columns: 1.5fr 0.6fr 1.5fr;
   align-items: center;
-  height: 45vh;
+  height: 48vh;
   margin: 0;
 }
 
@@ -216,7 +216,7 @@ body {
 
 /* FOOTER TIMER */
 .sb-footer {
-  height: 50vh;
+  height: 44vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -228,7 +228,7 @@ body {
 
 .sb-timer {
   font-family: 'Orbitron', sans-serif;
-  font-size: 44vh;
+  font-size: 38vh;
   font-weight: 900;
   color: #ecc94b;
   letter-spacing: -0.5vh;
@@ -491,3 +491,39 @@ body {
 .scoreboard-container.mode-set .sb-footer {
   height: 38vh;
 }
+
+/* OVERRIDE UNTUK CABOR DENGAN FOULS (FUTSAL & BASKET) AGAR KOTAK FOUL TIDAK MELEWATI BATAS BAWAH */
+.scoreboard-container.has-foul .sb-score {
+  font-size: 22vh;
+}
+
+.scoreboard-container.has-foul .sb-team-name {
+  font-size: 5vh;
+}
+
+.scoreboard-container.has-foul .foul-box {
+  margin-top: 1vh;
+  padding: 0.8vh 1.5vw;
+  min-width: 12vw;
+}
+
+.scoreboard-container.has-foul .foul-val {
+  font-size: 4.5vh;
+}
+
+.scoreboard-container.has-foul .foul-label {
+  font-size: 1.5vh;
+}
+
+.scoreboard-container.has-foul .sb-board {
+  height: 48vh;
+}
+
+.scoreboard-container.has-foul .sb-footer {
+  height: 44vh;
+}
+
+.scoreboard-container.has-foul .sb-timer {
+  font-size: 38vh;
+}
+
