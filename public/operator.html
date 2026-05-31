@@ -135,6 +135,16 @@
             <div class="team-header right">
               <h1 id="team-b-name">TEAM B</h1>
             </div>
+            <div id="tennis-game-points-wrapper" style="grid-column: 1 / span 3; display: none; justify-content: center; gap: 40px; margin-top: 15px; font-weight: bold;">
+              <div style="text-align: center;">
+                <div style="font-size: 0.65rem; color: #82ccdd; text-transform: uppercase;">Poin Game Ini</div>
+                <div id="tennis-point-a" style="font-size: 1.5rem; color: #00d2ff; text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);">0</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 0.65rem; color: #fad390; text-transform: uppercase;">Poin Game Ini</div>
+                <div id="tennis-point-b" style="font-size: 1.5rem; color: #fad390; text-shadow: 0 0 10px rgba(250, 211, 144, 0.5);">0</div>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -191,7 +201,7 @@
             </div>
             
             <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-              <button onclick="setAllAsStarter('A')" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(0, 210, 255, 0.2); color: #82ccdd; border: 1px solid rgba(0, 210, 255, 0.4); border-radius: 6px; font-weight: bold; cursor: pointer;">
+              <button id="btn-starter-all-a" onclick="setAllAsStarter('A')" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(0, 210, 255, 0.2); color: #82ccdd; border: 1px solid rgba(0, 210, 255, 0.4); border-radius: 6px; font-weight: bold; cursor: pointer;">
                 <i class="fa fa-users me-1"></i> STARTER ALL
               </button>
               <button id="btn-reset-foul-a" style="padding: 6px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer;">
@@ -211,13 +221,13 @@
                 <div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>
               </div>
               
-              <h4 style="margin-top: 1.5rem;">🛋️ Bangku Cadangan</h4>
+              <h4 id="bench-header-a" style="margin-top: 1.5rem;">🛋️ Bangku Cadangan</h4>
               <div class="roster-list bench-list" id="bench-list-a">
                 <!-- Pemain Cadangan A -->
               </div>
             </div>
             
-            <div class="p-2 border-top" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+            <div class="p-2 border-top" id="anon-footer-a" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
               <button type="button" class="btn-player-sub" id="btn-anon-event-a" style="font-size: 0.8rem; width: 100%;">
                 ⭐ Event Tanpa Pemain / Bunuh Diri
               </button>
@@ -234,7 +244,7 @@
             </div>
             
             <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-              <button onclick="setAllAsStarter('B')" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(250, 211, 144, 0.2); color: #fad390; border: 1px solid rgba(250, 211, 144, 0.4); border-radius: 6px; font-weight: bold; cursor: pointer;">
+              <button id="btn-starter-all-b" onclick="setAllAsStarter('B')" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(250, 211, 144, 0.2); color: #fad390; border: 1px solid rgba(250, 211, 144, 0.4); border-radius: 6px; font-weight: bold; cursor: pointer;">
                 <i class="fa fa-users me-1"></i> STARTER ALL
               </button>
               <button id="btn-reset-foul-b" style="padding: 6px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer;">
@@ -254,13 +264,13 @@
                 <div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>
               </div>
               
-              <h4 style="margin-top: 1.5rem;">🛋️ Bangku Cadangan</h4>
+              <h4 id="bench-header-b" style="margin-top: 1.5rem;">🛋️ Bangku Cadangan</h4>
               <div class="roster-list bench-list" id="bench-list-b">
                 <!-- Pemain Cadangan B -->
               </div>
             </div>
             
-            <div class="p-2 border-top" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+            <div class="p-2 border-top" id="anon-footer-b" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
               <button type="button" class="btn-player-sub" id="btn-anon-event-b" style="font-size: 0.8rem; width: 100%;">
                 ⭐ Event Tanpa Pemain / Bunuh Diri
               </button>

@@ -122,6 +122,11 @@ function updateScoreboardUI(data) {
     sbTournament.textContent = data.namaTurnamen || 'TURNAMEN';
   }
   sbFase.textContent = data.fase || 'PERTANDINGAN';
+  
+  const idCabor = parseInt(data.id_cabor || 0);
+  const maxSet = parseInt(data.max_set || 3);
+  const curPeriod = (data.currentPeriod || '').toUpperCase();
+  
   if (sbPeriod) {
     sbPeriod.textContent = data.currentPeriod || 'BABAK 1';
   }
@@ -129,36 +134,148 @@ function updateScoreboardUI(data) {
   sbTeamA.textContent = data.teamAName || 'TEAM A';
   sbTeamB.textContent = data.teamBName || 'TEAM B';
 
-  const newScoreA = parseInt(data.scoreA) || 0;
-  const newScoreB = parseInt(data.scoreB) || 0;
+  const setsWonA = parseInt(data.scoreA) || 0;
+  const setsWonB = parseInt(data.scoreB) || 0;
 
-  if (newScoreA > prevScoreA) {
+  // Deteksi Set Aktif
+  let activeSetNum = 1;
+  if (curPeriod.indexOf('SET 2') !== -1 || curPeriod.indexOf('BABAK 2') !== -1) {
+    activeSetNum = 2;
+  } else if (curPeriod.indexOf('SET 3') !== -1 || curPeriod.indexOf('BABAK 3') !== -1) {
+    activeSetNum = 3;
+  } else if (curPeriod.indexOf('SET 4') !== -1 || curPeriod.indexOf('BABAK 4') !== -1) {
+    activeSetNum = 4;
+  } else if (curPeriod.indexOf('SET 5') !== -1 || curPeriod.indexOf('BABAK 5') !== -1) {
+    activeSetNum = 5;
+  }
+
+  // Tentukan Display Skor Utama
+  let mainScoreA = 0;
+  let mainScoreB = 0;
+
+  if (idCabor === 10) {
+    // Tennis: Display besar adalah hasil set aktif
+    mainScoreA = parseInt(data['s' + activeSetNum + '_1']) || 0;
+    mainScoreB = parseInt(data['s' + activeSetNum + '_2']) || 0;
+  } else {
+    // Normal: Display besar adalah skor utama / sets won (bulutangkis/tenismeja)
+    mainScoreA = setsWonA;
+    mainScoreB = setsWonB;
+  }
+
+  if (mainScoreA > prevScoreA) {
     animateScoreChange(sbScoreA);
   }
-  if (newScoreB > prevScoreB) {
+  if (mainScoreB > prevScoreB) {
     animateScoreChange(sbScoreB);
   }
 
-  prevScoreA = newScoreA;
-  prevScoreB = newScoreB;
+  prevScoreA = mainScoreA;
+  prevScoreB = mainScoreB;
 
-  sbScoreA.textContent = newScoreA;
-  sbScoreB.textContent = newScoreB;
+  sbScoreA.textContent = mainScoreA;
+  sbScoreB.textContent = mainScoreB;
   
-  // Update Set Scores
+  // Set-based Cabor UI
+  const setBottomPanel = document.getElementById('set_bottom_panel');
+  const setsWonBoxA = document.getElementById('sets-won-box-a');
+  const setsWonBoxB = document.getElementById('sets-won-box-b');
+  const tennisPointBoxA = document.getElementById('tennis-point-box-a');
+  const tennisPointBoxB = document.getElementById('tennis-point-box-b');
+  
   if (data.tipe_skor === 'set') {
-    if (setScoresPanel) {
-        setScoresPanel.style.display = 'flex';
-        if (set1Val) set1Val.textContent = (data.s1_1 || 0) + '-' + (data.s1_2 || 0);
-        if (set2Val) set2Val.textContent = (data.s2_1 || 0) + '-' + (data.s2_2 || 0);
-        if (set3Val) set3Val.textContent = (data.s3_1 || 0) + '-' + (data.s3_2 || 0);
+    // Sembunyikan Timer Utama
+    sbTimer.style.display = 'none';
+    
+    // Tampilkan Panel Set
+    if (setBottomPanel) {
+      setBottomPanel.style.display = 'flex';
+      
+      // Update label set berjalan
+      const activeSetLbl = document.getElementById('active_set_lbl');
+      if (activeSetLbl) {
+        activeSetLbl.textContent = 'SET ' + activeSetNum;
+      }
+      
+      // Tampilkan set 4 dan 5 hanya jika maxSet mencukupi
+      const set4Box = document.getElementById('set4_box');
+      const set5Box = document.getElementById('set5_box');
+      if (set4Box) set4Box.style.display = (maxSet >= 4) ? 'block' : 'none';
+      if (set5Box) set5Box.style.display = (maxSet >= 5) ? 'block' : 'none';
+      
+      // Update skor masing-masing set card & opacity
+      for (let i = 1; i <= 5; i++) {
+        const valElem = document.getElementById(`set${i}_val`);
+        const boxElem = document.getElementById(`set${i}_box`);
+        if (valElem && boxElem) {
+          const sValA = data[`s${i}_1`] || 0;
+          const sValB = data[`s${i}_2`] || 0;
+          const textVal = `${sValA} - ${sValB}`;
+          valElem.textContent = textVal;
+          
+          // Set Active class & dynamic opacity
+          if (i === activeSetNum) {
+            boxElem.classList.add('active');
+            boxElem.style.opacity = '1';
+          } else {
+            boxElem.classList.remove('active');
+            if (sValA === 0 && sValB === 0) {
+              boxElem.style.opacity = '0.4';
+            } else {
+              boxElem.style.opacity = '0.8';
+            }
+          }
+        }
+      }
     }
-    sbTimer.textContent = 'VS';
-    sbTimer.style.fontSize = '15vh';
+    
+    // Tampilkan Sets Won Box (kotak emas)
+    if (setsWonBoxA) {
+      setsWonBoxA.style.display = 'inline-flex';
+      document.getElementById('sets_won_1').textContent = setsWonA;
+    }
+    if (setsWonBoxB) {
+      setsWonBoxB.style.display = 'inline-flex';
+      document.getElementById('sets_won_2').textContent = setsWonB;
+    }
+
+    // Tennis Point Box (kotak cyan)
+    if (idCabor === 10) {
+      if (tennisPointBoxA) tennisPointBoxA.style.display = 'inline-flex';
+      if (tennisPointBoxB) tennisPointBoxB.style.display = 'inline-flex';
+      
+      // Parsing tennis point game ini dari currentPeriod
+      let txt1 = "0";
+      let txt2 = "0";
+      if (curPeriod.indexOf('[') !== -1 && curPeriod.indexOf(']') !== -1) {
+        let parts = data.currentPeriod.split('[')[1].split(']')[0].split('-');
+        txt1 = parts[0].trim();
+        txt2 = parts[1].trim();
+      } else if (curPeriod.indexOf('DEUCE') !== -1) {
+        txt1 = "40";
+        txt2 = "40";
+      }
+      
+      const pt1 = document.getElementById('tennis_pt_1');
+      const pt2 = document.getElementById('tennis_pt_2');
+      if (pt1) pt1.textContent = txt1;
+      if (pt2) pt2.textContent = txt2;
+    } else {
+      if (tennisPointBoxA) tennisPointBoxA.style.display = 'none';
+      if (tennisPointBoxB) tennisPointBoxB.style.display = 'none';
+    }
+    
   } else {
-    if (setScoresPanel) setScoresPanel.style.display = 'none';
+    // Normal Cabor (akumulasi)
+    sbTimer.style.display = 'block';
     sbTimer.textContent = data.timerText;
     sbTimer.style.fontSize = '44vh';
+    
+    if (setBottomPanel) setBottomPanel.style.display = 'none';
+    if (setsWonBoxA) setsWonBoxA.style.display = 'none';
+    if (setsWonBoxB) setsWonBoxB.style.display = 'none';
+    if (tennisPointBoxA) tennisPointBoxA.style.display = 'none';
+    if (tennisPointBoxB) tennisPointBoxB.style.display = 'none';
   }
 
   // Sync Timeout State
@@ -173,7 +290,6 @@ function updateScoreboardUI(data) {
   // Auto-hide Timer Footer for set-based sports
   const footerTimer = document.querySelector('.sb-footer');
   if (data.tipe_skor === 'set') {
-    // In set mode, we might want to keep the footer for consistent layout but show VS
     if (footerTimer) footerTimer.style.display = 'flex';
   } else {
     if (footerTimer) footerTimer.style.display = 'flex';

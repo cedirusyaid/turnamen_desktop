@@ -20,6 +20,7 @@ let timerSeconds = 0;
 let timerInterval = null;
 let syncQueue = [];
 let isOnline = false;
+let isBypassStarter = false;
 
 // Timer Configuration
 let timerMode = 'up'; // 'up' or 'down'
@@ -435,9 +436,83 @@ function showSetupStatus(msg, type) {
   setupStatus.className = `status-msg ${type}`;
 }
 
+// Function helper untuk tenis game points & update score set yang aktif
+function updateMainScoresForTennis() {
+  if (!matchData) return;
+  if (parseInt(matchData.id_cabor) === 10) {
+    const period = matchData.current_period || 'Babak 1';
+    let setNum = 1;
+    if (period.includes('2')) setNum = 2;
+    else if (period.includes('3')) setNum = 3;
+    else if (period.includes('4')) setNum = 4;
+    else if (period.includes('5')) setNum = 5;
+
+    currentScoreA = parseInt(matchData[`s${setNum}_1`] || 0);
+    currentScoreB = parseInt(matchData[`s${setNum}_2`] || 0);
+    scoreADisplay.textContent = currentScoreA;
+    scoreBDisplay.textContent = currentScoreB;
+
+    // Tampilkan/update tennis game points
+    const wrapper = document.getElementById('tennis-game-points-wrapper');
+    const ptA = document.getElementById('tennis-point-a');
+    const ptB = document.getElementById('tennis-point-b');
+    if (wrapper && ptA && ptB) {
+      wrapper.style.display = 'flex';
+      let txt1 = "0";
+      let txt2 = "0";
+      if (period.indexOf('[') !== -1 && period.indexOf(']') !== -1) {
+        let parts = period.split('[')[1].split(']')[0].split('-');
+        txt1 = parts[0].trim();
+        txt2 = parts[1].trim();
+      } else if (period.toUpperCase().indexOf('DEUCE') !== -1) {
+        txt1 = "40";
+        txt2 = "40";
+      }
+      ptA.textContent = txt1;
+      ptB.textContent = txt2;
+    }
+  } else {
+    const wrapper = document.getElementById('tennis-game-points-wrapper');
+    if (wrapper) wrapper.style.display = 'none';
+  }
+}
+
 // 5. INISIALISASI HALAMAN OPERATOR
 function initMatchPanel() {
   if (!matchData) return;
+
+  // Tentukan apakah cabor bypass starter (Tenis Meja = 5, Bulu Tangkis = 7, Tenis Lapangan = 10)
+  isBypassStarter = [5, 7, 10].includes(parseInt(matchData.id_cabor));
+
+  // Sembunyikan/tampilkan tombol & bangku cadangan & anon footer jika bypass starter
+  const starterBtnA = document.getElementById('btn-starter-all-a');
+  const starterBtnB = document.getElementById('btn-starter-all-b');
+  const benchHeaderA = document.getElementById('bench-header-a');
+  const benchHeaderB = document.getElementById('bench-header-b');
+  const benchListA = document.getElementById('bench-list-a');
+  const benchListB = document.getElementById('bench-list-b');
+  const anonFooterA = document.getElementById('anon-footer-a');
+  const anonFooterB = document.getElementById('anon-footer-b');
+
+  if (isBypassStarter) {
+    if (starterBtnA) starterBtnA.style.setProperty('display', 'none', 'important');
+    if (starterBtnB) starterBtnB.style.setProperty('display', 'none', 'important');
+    if (benchHeaderA) benchHeaderA.style.setProperty('display', 'none', 'important');
+    if (benchHeaderB) benchHeaderB.style.setProperty('display', 'none', 'important');
+    if (benchListA) benchListA.style.setProperty('display', 'none', 'important');
+    if (benchListB) benchListB.style.setProperty('display', 'none', 'important');
+    if (anonFooterA) anonFooterA.style.setProperty('display', 'none', 'important');
+    if (anonFooterB) anonFooterB.style.setProperty('display', 'none', 'important');
+  } else {
+    if (starterBtnA) starterBtnA.style.display = '';
+    if (starterBtnB) starterBtnB.style.display = '';
+    if (benchHeaderA) benchHeaderA.style.display = '';
+    if (benchHeaderB) benchHeaderB.style.display = '';
+    if (benchListA) benchListA.style.display = '';
+    if (benchListB) benchListB.style.display = '';
+    if (anonFooterA) anonFooterA.style.display = '';
+    if (anonFooterB) anonFooterB.style.display = '';
+  }
 
   // Set Nama Tim & Skor Bawaan
   teamAName.textContent = matchData.team_a_nama;
@@ -450,6 +525,9 @@ function initMatchPanel() {
   currentScoreB = parseInt(matchData.skor_b || 0);
   scoreADisplay.textContent = currentScoreA;
   scoreBDisplay.textContent = currentScoreB;
+
+  // Khusus tenis, update ke skor set aktif
+  updateMainScoresForTennis();
 
   // Init Timer Config
   timerMode = matchData.timer_mode || 'up';
@@ -552,24 +630,29 @@ function initMatchPanel() {
 }
 
 function restoreRosterStatus() {
-  if (matchData.players_a) matchData.players_a.forEach(p => p.status = 'bench');
-  if (matchData.players_b) matchData.players_b.forEach(p => p.status = 'bench');
+  if (isBypassStarter) {
+    if (matchData.players_a) matchData.players_a.forEach(p => p.status = 'active');
+    if (matchData.players_b) matchData.players_b.forEach(p => p.status = 'active');
+  } else {
+    if (matchData.players_a) matchData.players_a.forEach(p => p.status = 'bench');
+    if (matchData.players_b) matchData.players_b.forEach(p => p.status = 'bench');
 
-  if (matchData.events && matchData.events.length > 0) {
-    const eventsChronological = [...matchData.events].reverse();
-    eventsChronological.forEach(e => {
-      const team = e.teamType;
-      const playerList = team === 'A' ? matchData.players_a : matchData.players_b;
-      if (!playerList) return;
-      const player = playerList.find(p => p.id_personil == e.id_personil);
-      if (player) {
-        if (e.jenis === 'starter' || e.jenis === 'sub_in') {
-          player.status = 'active';
-        } else if (e.jenis === 'sub_out') {
-          player.status = 'bench';
+    if (matchData.events && matchData.events.length > 0) {
+      const eventsChronological = [...matchData.events].reverse();
+      eventsChronological.forEach(e => {
+        const team = e.teamType;
+        const playerList = team === 'A' ? matchData.players_a : matchData.players_b;
+        if (!playerList) return;
+        const player = playerList.find(p => p.id_personil == e.id_personil);
+        if (player) {
+          if (e.jenis === 'starter' || e.jenis === 'sub_in') {
+            player.status = 'active';
+          } else if (e.jenis === 'sub_out') {
+            player.status = 'bench';
+          }
         }
-      }
-    });
+      });
+    }
   }
   renderRoster();
 }
@@ -645,9 +728,9 @@ function renderRoster() {
         }
       }
 
-      const subBtn = p.status === 'active' 
+      const subBtn = isBypassStarter ? '' : (p.status === 'active' 
         ? `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'bench')" title="Tarik ke Cadangan">⬇️ Out</button>`
-        : `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'active')" title="Masukkan ke Lapangan">⬆️ In</button>`;
+        : `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'active')" title="Masukkan ke Lapangan">⬆️ In</button>`);
 
       const playerRowHtml = `
         <div class="player-row">
@@ -939,6 +1022,9 @@ if (btnFinishMatch) {
 
 // 7. FUNGSI BROADCAST KE VIDEOTRON
 function broadcastState() {
+  // Pastikan skor tenis & live game points terupdate sebelum broadcast
+  updateMainScoresForTennis();
+
   let displaySeconds = timerSeconds;
   
   if (timerMode === 'down') {
@@ -953,6 +1039,8 @@ function broadcastState() {
     type: 'UPDATE_STATE',
     data: {
       cabor: matchData ? matchData.cabor_nama : 'CABOR',
+      id_cabor: matchData ? parseInt(matchData.id_cabor) : 0,
+      max_set: matchData ? parseInt(matchData.max_set) : 3,
       tipe_skor: matchData ? matchData.tipe_skor : 'akumulasi',
       fase: matchData ? (matchData.fase ? `${matchData.kategori_nama} - ${matchData.fase}` : matchData.kategori_nama) : 'FASE',
       namaTurnamen: matchData ? matchData.nama_turnamen : 'TURNAMEN',
@@ -971,6 +1059,10 @@ function broadcastState() {
       s2_2: matchData ? (matchData.s2_2 || 0) : 0,
       s3_1: matchData ? (matchData.s3_1 || 0) : 0,
       s3_2: matchData ? (matchData.s3_2 || 0) : 0,
+      s4_1: matchData ? (matchData.s4_1 || 0) : 0,
+      s4_2: matchData ? (matchData.s4_2 || 0) : 0,
+      s5_1: matchData ? (matchData.s5_1 || 0) : 0,
+      s5_2: matchData ? (matchData.s5_2 || 0) : 0,
       isTimeout: timeoutEndTime !== null,
       timeoutEndTime: timeoutEndTime,
       timeoutBy: timeoutBy
@@ -1060,7 +1152,9 @@ function recordQuickScoreEvent(team, points) {
     const period = matchData.current_period || '';
     let setNum = 1;
     if (period.includes('2')) setNum = 2;
-    if (period.includes('3')) setNum = 3;
+    else if (period.includes('3')) setNum = 3;
+    else if (period.includes('4')) setNum = 4;
+    else if (period.includes('5')) setNum = 5;
     
     const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
     matchData[key] = (parseInt(matchData[key]) || 0) + weight;
@@ -1431,7 +1525,9 @@ window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
       const period = matchData.current_period || '';
       let setNum = 1;
       if (period.includes('2')) setNum = 2;
-      if (period.includes('3')) setNum = 3;
+      else if (period.includes('3')) setNum = 3;
+      else if (period.includes('4')) setNum = 4;
+      else if (period.includes('5')) setNum = 5;
       
       const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
       matchData[key] = (parseInt(matchData[key]) || 0) + points;
@@ -1696,7 +1792,9 @@ window.saveAnonymousEvent = function() {
       const period = matchData.current_period || '';
       let setNum = 1;
       if (period.includes('2')) setNum = 2;
-      if (period.includes('3')) setNum = 3;
+      else if (period.includes('3')) setNum = 3;
+      else if (period.includes('4')) setNum = 4;
+      else if (period.includes('5')) setNum = 5;
       
       const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
       matchData[key] = (parseInt(matchData[key]) || 0) + weight;

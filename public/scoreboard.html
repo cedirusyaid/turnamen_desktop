@@ -34,7 +34,15 @@
       
       <!-- TIM A -->
       <div class="sb-team team-left">
-        <h2 class="sb-team-name" id="sb-team-a">TEAM A</h2>
+        <div class="score-row">
+          <h2 class="sb-team-name" id="sb-team-a">TEAM A</h2>
+          <div class="sets-won-container" id="sets-won-box-a" style="display: none;">
+            <span class="sets-won-value" id="sets_won_1">0</span>
+          </div>
+          <div class="tennis-point-container" id="tennis-point-box-a" style="display: none;">
+            <span class="tennis-point-value" id="tennis_pt_1">0</span>
+          </div>
+        </div>
         
         <!-- Team Foul A -->
         <div class="foul-box" id="foul-box-a" style="display: none;">
@@ -51,24 +59,19 @@
           <div class="sb-colon">:</div>
           <div class="sb-score" id="sb-score-b">0</div>
         </div>
-
-        <!-- SET SCORES FLOATING -->
-        <div class="set-scores-container" id="set-scores-panel" style="display: none; position: absolute; top: -5vh; right: -12vw; flex-direction: column; gap: 0.5vh;">
-            <div class="set-box" style="background: rgba(0,0,0,0.7); border: 1px solid #4a5568; padding: 0.4vh 1vh; border-radius: 6px; text-align: center;">
-                <div class="set-points" id="set1-val" style="font-size: 2vh; color: #ecc94b; font-weight: 900;">0-0</div>
-            </div>
-            <div class="set-box" style="background: rgba(0,0,0,0.7); border: 1px solid #4a5568; padding: 0.4vh 1vh; border-radius: 6px; text-align: center;">
-                <div class="set-points" id="set2-val" style="font-size: 2vh; color: #ecc94b; font-weight: 900;">0-0</div>
-            </div>
-            <div class="set-box" style="background: rgba(0,0,0,0.7); border: 1px solid #4a5568; padding: 0.4vh 1vh; border-radius: 6px; text-align: center;">
-                <div class="set-points" id="set3-val" style="font-size: 2vh; color: #ecc94b; font-weight: 900;">0-0</div>
-            </div>
-        </div>
       </div>
 
       <!-- TIM B -->
       <div class="sb-team team-right">
-        <h2 class="sb-team-name" id="sb-team-b">TEAM B</h2>
+        <div class="score-row">
+          <h2 class="sb-team-name" id="sb-team-b">TEAM B</h2>
+          <div class="sets-won-container" id="sets-won-box-b" style="display: none;">
+            <span class="sets-won-value" id="sets_won_2">0</span>
+          </div>
+          <div class="tennis-point-container" id="tennis-point-box-b" style="display: none;">
+            <span class="tennis-point-value" id="tennis_pt_2">0</span>
+          </div>
+        </div>
 
         <!-- Team Foul B -->
         <div class="foul-box" id="foul-box-b" style="display: none;">
@@ -77,11 +80,41 @@
         </div>
       </div>
 
-    </main>
-
-    <!-- WAKTU / TIMER -->
+    <!-- WAKTU / TIMER & BOTTOM SET PANEL -->
     <footer class="sb-footer">
       <div class="sb-timer" id="sb-timer">00:00</div>
+      
+      <!-- SET SCORES BOTTOM PANEL -->
+      <div id="set_bottom_panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; z-index: 10;">
+        <!-- Running Set Info -->
+        <div style="font-size: 2.2vh; color: #a0aec0; letter-spacing: 4px; font-weight: 700; text-transform: uppercase; margin-bottom: 1.5vh;">
+          Set Berjalan: <span id="active_set_lbl" style="color: #ecc94b; text-shadow: 0 0 10px rgba(236, 201, 75, 0.4);">SET 1</span>
+        </div>
+        
+        <!-- Horizontal Cards for Sets 1-5 -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 3vw; width: 100%;">
+          <div class="set-card" id="set1_box">
+            <div class="set-card-header">SET 1</div>
+            <div class="set-card-score" id="set1_val">0-0</div>
+          </div>
+          <div class="set-card" id="set2_box">
+            <div class="set-card-header">SET 2</div>
+            <div class="set-card-score" id="set2_val">0-0</div>
+          </div>
+          <div class="set-card" id="set3_box">
+            <div class="set-card-header">SET 3</div>
+            <div class="set-card-score" id="set3_val">0-0</div>
+          </div>
+          <div class="set-card" id="set4_box" style="display: none;">
+            <div class="set-card-header">SET 4</div>
+            <div class="set-card-score" id="set4_val">0-0</div>
+          </div>
+          <div class="set-card" id="set5_box" style="display: none;">
+            <div class="set-card-header">SET 5</div>
+            <div class="set-card-score" id="set5_val">0-0</div>
+          </div>
+        </div>
+      </div>
     </footer>
 
     <!-- BANNER OVERLAY NOTIFIKASI EVENT (GOL/KARTU) -->

@@ -351,3 +351,125 @@ body {
   display: flex;
   animation: strobe 1.5s infinite;
 }
+
+/* --- INDIKATOR SETS & TENNIS POINTS --- */
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5vw;
+  margin-top: 1vh;
+  width: 100%;
+}
+
+.sets-won-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 24, 33, 0.9);
+  border: 2px solid #ecc94b;
+  border-radius: 8px;
+  padding: 0.5vh;
+  width: 5vh;
+  height: 5vh;
+  box-shadow: 0 0 15px rgba(236, 201, 75, 0.25);
+  backdrop-filter: blur(10px);
+}
+
+.sets-won-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 3vh;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  line-height: 1;
+}
+
+.tennis-point-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 24, 33, 0.9);
+  border: 2px solid #63b3ed;
+  border-radius: 8px;
+  padding: 0.5vh;
+  width: 6vh;
+  height: 5vh;
+  box-shadow: 0 0 15px rgba(99, 179, 237, 0.35);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.tennis-point-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.8vh;
+  font-weight: 900;
+  color: #63b3ed;
+  text-shadow: 0 0 10px rgba(99, 179, 237, 0.6);
+  line-height: 1;
+}
+
+/* Sisi kiri (Default HOME) - Letakkan di inner-side */
+.team-left .score-row {
+  flex-direction: row; /* Dari kiri ke kanan: Nama Tim -> Sets Won -> Tennis Point */
+}
+
+/* Sisi kanan (Default AWAY) - Letakkan di inner-side */
+.team-right .score-row {
+  flex-direction: row-reverse; /* Dari kanan ke kiri: Nama Tim -> Sets Won -> Tennis Point */
+}
+
+/* Ketika posisi di-swap */
+.sb-board.reversed .team-left .score-row {
+  flex-direction: row-reverse;
+}
+.sb-board.reversed .team-right .score-row {
+  flex-direction: row;
+}
+
+/* --- SET SCORES BOTTOM CARDS --- */
+.set-card {
+  background: rgba(20, 24, 33, 0.85);
+  border: 2px solid rgba(74, 85, 104, 0.4);
+  min-width: 13vw;
+  padding: 2vh 1vh;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.set-card.active {
+  border-color: #ecc94b;
+  box-shadow: 0 0 20px rgba(236, 201, 75, 0.4), inset 0 0 8px rgba(236, 201, 75, 0.1);
+  transform: scale(1.06);
+}
+
+.set-card-header {
+  font-size: 1.8vh;
+  color: #a0aec0;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 1vh;
+  text-transform: uppercase;
+}
+
+.set-card.active .set-card-header {
+  color: #ecc94b;
+  text-shadow: 0 0 10px rgba(236, 201, 75, 0.3);
+}
+
+.set-card-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 5.5vh;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+  line-height: 1;
+}
+
+.set-card.active .set-card-score {
+  color: #fff;
+  text-shadow: 0 0 20px rgba(236, 201, 75, 0.9);
+}
