@@ -473,3 +473,17 @@ body {
   color: #fff;
   text-shadow: 0 0 20px rgba(236, 201, 75, 0.9);
 }
+
+/* OVERRIDE WIDTH & FONT SIZE UNTUK MODE SET AGAR TIDAK KACAU/PECAH */
+.scoreboard-container.mode-set .sb-score {
+  min-width: 10vw;
+  font-size: 24vh;
+}
+
+.scoreboard-container.mode-set .sb-score-container {
+  gap: 0.5vw;
+}
+
+.scoreboard-container.mode-set .sb-colon {
+  font-size: 12vh;
+}

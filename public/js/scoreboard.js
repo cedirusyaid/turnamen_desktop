@@ -183,7 +183,9 @@ function updateScoreboardUI(data) {
   const tennisPointBoxA = document.getElementById('tennis-point-box-a');
   const tennisPointBoxB = document.getElementById('tennis-point-box-b');
   
+  const container = document.querySelector('.scoreboard-container');
   if (data.tipe_skor === 'set') {
+    if (container) container.classList.add('mode-set');
     // Sembunyikan Timer Utama
     sbTimer.style.display = 'none';
     
@@ -266,6 +268,7 @@ function updateScoreboardUI(data) {
     }
     
   } else {
+    if (container) container.classList.remove('mode-set');
     // Normal Cabor (akumulasi)
     sbTimer.style.display = 'block';
     sbTimer.textContent = data.timerText;
