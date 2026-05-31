@@ -487,3 +487,7 @@ body {
 .scoreboard-container.mode-set .sb-colon {
   font-size: 12vh;
 }
+
+.scoreboard-container.mode-set .sb-footer {
+  height: 38vh;
+}
