@@ -130,7 +130,7 @@ body {
 /* MAIN BOARD LAYOUT */
 .sb-board {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr;
+  grid-template-columns: 1.5fr 0.6fr 1.5fr;
   align-items: center;
   height: 45vh;
   margin: 0;
@@ -411,20 +411,20 @@ body {
 
 /* Sisi kiri (Default HOME) - Letakkan di inner-side */
 .team-left .score-row {
-  flex-direction: row; /* Dari kiri ke kanan: Nama Tim -> Sets Won -> Tennis Point */
+  flex-direction: row; /* Dari kiri ke kanan: Skor A -> Tennis Point -> Sets Won */
 }
 
 /* Sisi kanan (Default AWAY) - Letakkan di inner-side */
 .team-right .score-row {
-  flex-direction: row-reverse; /* Dari kanan ke kiri: Nama Tim -> Sets Won -> Tennis Point */
+  flex-direction: row; /* Dari kiri ke kanan: Sets Won -> Tennis Point -> Skor B */
 }
 
-/* Ketika posisi di-swap */
+/* Ketika posisi di-swap (reversed) */
 .sb-board.reversed .team-left .score-row {
   flex-direction: row-reverse;
 }
 .sb-board.reversed .team-right .score-row {
-  flex-direction: row;
+  flex-direction: row-reverse;
 }
 
 /* --- SET SCORES BOTTOM CARDS --- */

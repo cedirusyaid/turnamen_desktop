@@ -36,6 +36,16 @@
       <div class="sb-team team-left">
         <h2 class="sb-team-name" id="sb-team-a">TEAM A</h2>
         
+        <div class="score-row">
+          <div class="sb-score" id="sb-score-a">0</div>
+          <div class="tennis-point-container" id="tennis-point-box-a" style="display: none;">
+            <span class="tennis-point-value" id="tennis_pt_1">0</span>
+          </div>
+          <div class="sets-won-container" id="sets-won-box-a" style="display: none;">
+            <span class="sets-won-value" id="sets_won_1">0</span>
+          </div>
+        </div>
+
         <!-- Team Foul A -->
         <div class="foul-box" id="foul-box-a" style="display: none;">
             <span class="foul-label">FOULS</span>
@@ -43,37 +53,25 @@
         </div>
       </div>
 
-      <!-- ANGKA SKOR -->
+      <!-- SEPARATOR TENGAH -->
       <div class="sb-score-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
         <div id="sb-period" class="sb-period-display" style="font-size: 2vh; font-weight: 800; color: #ffa502; text-transform: uppercase; letter-spacing: 3px; background: rgba(255, 165, 2, 0.1); border: 1px solid rgba(255, 165, 2, 0.2); padding: 0.3vh 1vw; border-radius: 4px; margin-bottom: 1vh; text-shadow: 0 0 10px rgba(255, 165, 2, 0.3);">BABAK 1</div>
-        <div class="sb-score-container" style="display: flex; align-items: center; justify-content: center; gap: 1.5vw; width: 100%;">
-          <div class="sb-score" id="sb-score-a">0</div>
-          
-          <!-- Indikator Tim A (Kiri) -->
-          <div class="tennis-point-container" id="tennis-point-box-a" style="display: none; margin: 0 0.5vw;">
-            <span class="tennis-point-value" id="tennis_pt_1">0</span>
-          </div>
-          <div class="sets-won-container" id="sets-won-box-a" style="display: none; margin: 0 0.5vw;">
-            <span class="sets-won-value" id="sets_won_1">0</span>
-          </div>
-
-          <div class="sb-colon">:</div>
-
-          <!-- Indikator Tim B (Kanan) -->
-          <div class="sets-won-container" id="sets-won-box-b" style="display: none; margin: 0 0.5vw;">
-            <span class="sets-won-value" id="sets_won_2">0</span>
-          </div>
-          <div class="tennis-point-container" id="tennis-point-box-b" style="display: none; margin: 0 0.5vw;">
-            <span class="tennis-point-value" id="tennis_pt_2">0</span>
-          </div>
-
-          <div class="sb-score" id="sb-score-b">0</div>
-        </div>
+        <div class="sb-colon">:</div>
       </div>
 
       <!-- TIM B -->
       <div class="sb-team team-right">
         <h2 class="sb-team-name" id="sb-team-b">TEAM B</h2>
+
+        <div class="score-row">
+          <div class="sets-won-container" id="sets-won-box-b" style="display: none;">
+            <span class="sets-won-value" id="sets_won_2">0</span>
+          </div>
+          <div class="tennis-point-container" id="tennis-point-box-b" style="display: none;">
+            <span class="tennis-point-value" id="tennis_pt_2">0</span>
+          </div>
+          <div class="sb-score" id="sb-score-b">0</div>
+        </div>
 
         <!-- Team Foul B -->
         <div class="foul-box" id="foul-box-b" style="display: none;">
