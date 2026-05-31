@@ -2493,4 +2493,130 @@ window.addEventListener('load', () => {
 
   // Jalankan backup background (jika online & login terverifikasi)
   runBackgroundBackup();
+
+  // --- QR CODE SCANNER FUNCTIONALITY ---
+  const btnScanQr = document.getElementById('btn-scan-qr');
+  const qrScannerOverlay = document.getElementById('qr-scanner-overlay');
+  const qrVideo = document.getElementById('qr-video');
+  const btnCancelScan = document.getElementById('btn-cancel-scan');
+  const qrScanError = document.getElementById('qr-scan-error');
+
+  let qrStream = null;
+  let qrAnimationId = null;
+
+  if (btnScanQr) {
+    btnScanQr.addEventListener('click', () => {
+      openQRScanner();
+    });
+  }
+
+  if (btnCancelScan) {
+    btnCancelScan.addEventListener('click', () => {
+      closeQRScanner();
+    });
+  }
+
+  async function openQRScanner() {
+    qrScanError.style.display = 'none';
+    qrScannerOverlay.style.display = 'flex';
+
+    try {
+      qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      qrVideo.srcObject = qrStream;
+      qrVideo.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+      qrVideo.play();
+      qrAnimationId = requestAnimationFrame(tickQRScanner);
+    } catch (err) {
+      console.error("Camera access failed:", err);
+      qrScanError.textContent = "Gagal mengakses kamera. Pastikan izin kamera telah diberikan.";
+      qrScanError.style.display = 'block';
+    }
+  }
+
+  function closeQRScanner() {
+    if (qrAnimationId) {
+      cancelAnimationFrame(qrAnimationId);
+      qrAnimationId = null;
+    }
+    if (qrStream) {
+      qrStream.getTracks().forEach(track => track.stop());
+      qrStream = null;
+    }
+    qrVideo.srcObject = null;
+    qrScannerOverlay.style.display = 'none';
+  }
+
+  function tickQRScanner() {
+    if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+      // Create offscreen canvas for decoding
+      const canvas = document.createElement('canvas');
+      canvas.width = qrVideo.videoWidth;
+      canvas.height = qrVideo.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // Ensure jsQR is loaded
+      if (typeof jsQR !== 'undefined') {
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+
+        if (code) {
+          console.log("[QR Scanner] Found code:", code.data);
+          let parsedData = parseQRData(code.data);
+          if (parsedData) {
+            // Success! Populate and trigger download
+            serverUrlInput.value = parsedData.server;
+            authTokenInput.value = parsedData.pin;
+            closeQRScanner();
+            btnDownload.click();
+            return;
+          }
+        }
+      }
+    }
+    if (qrScannerOverlay.style.display === 'flex') {
+      qrAnimationId = requestAnimationFrame(tickQRScanner);
+    }
+  }
+
+  function parseQRData(dataStr) {
+    dataStr = dataStr.trim();
+    // Try parsing as JSON first
+    try {
+      if (dataStr.startsWith('{')) {
+        const obj = JSON.parse(dataStr);
+        if (obj.server && obj.pin) {
+          return { server: obj.server.trim(), pin: obj.pin.trim() };
+        }
+      }
+    } catch (e) {
+      console.warn("JSON parsing failed, trying raw format", e);
+    }
+
+    // Try parsing as url-pin style: e.g. "https://turnamen.info|123456"
+    if (dataStr.includes('|')) {
+      const parts = dataStr.split('|');
+      if (parts.length >= 2) {
+        return { server: parts[0].trim(), pin: parts[1].trim() };
+      }
+    }
+
+    // Try parsing as query param style: e.g. "https://turnamen.info/operator?pin=123456" or custom scheme
+    try {
+      if (dataStr.startsWith('http://') || dataStr.startsWith('https://')) {
+        const url = new URL(dataStr);
+        const pin = url.searchParams.get('pin');
+        if (pin) {
+          const server = url.origin + url.pathname.replace(/\/operator\/?$/, '').replace(/\/$/, '');
+          return { server: server, pin: pin.trim() };
+        }
+      }
+    } catch (e) {
+      console.warn("URL parsing failed", e);
+    }
+
+    return null;
+  }
 });

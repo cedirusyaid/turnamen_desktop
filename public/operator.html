@@ -8,6 +8,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    @keyframes scan-pulse {
+      0% { opacity: 0.4; transform: scale(0.98); }
+      50% { opacity: 1; transform: scale(1.02); border-color: #2ed573; }
+      100% { opacity: 0.4; transform: scale(0.98); }
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -25,7 +32,10 @@
 
         <div class="form-group">
           <label>Kode Akses Operator (PIN)</label>
-          <input type="text" id="auth-token" placeholder="Contoh: 8K3M9A" style="font-size: 1.2rem; text-align: center; letter-spacing: 5px; font-weight: bold; text-transform: uppercase;">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="auth-token" placeholder="Contoh: 8K3M9A" style="flex: 1; font-size: 1.2rem; text-align: center; letter-spacing: 5px; font-weight: bold; text-transform: uppercase; margin: 0; box-sizing: border-box;">
+            <button id="btn-scan-qr" type="button" class="btn-time-adj" style="min-width: auto; height: 46px; width: 46px; border-radius: 8px; margin: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; transition: 0.2s;" title="Scan QR Code"><i class="fa fa-qrcode" style="font-size: 1.5rem;"></i></button>
+          </div>
         </div>
         
         <button id="btn-download" class="btn-primary">Koneksikan & Buka Pertandingan</button>
@@ -160,12 +170,6 @@
                 <option value="Babak 2">Babak 2</option>
               </select>
             </div>
-            
-            <div style="margin-top: 15px; display: flex; justify-content: center; width: 100%;">
-              <button id="btn-finish-match" class="btn-success" style="flex: 1; background: #2ed573; box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3); border-radius: 50px; font-weight: 800; border: none; color: white; cursor: pointer; padding: 10px 20px; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; gap: 8px; text-transform: uppercase;">
-                <i class="fa fa-flag-checkered"></i> Selesai Pertandingan
-              </button>
-            </div>
           </div>
           
           <div class="timer-adj-group">
@@ -186,9 +190,17 @@
               </div>
             </div>
             
+            <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+              <button onclick="setAllAsStarter('A')" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(0, 210, 255, 0.2); color: #82ccdd; border: 1px solid rgba(0, 210, 255, 0.4); border-radius: 6px; font-weight: bold; cursor: pointer;">
+                <i class="fa fa-users me-1"></i> STARTER ALL
+              </button>
+              <button id="btn-reset-foul-a" style="padding: 6px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer;">
+                <i class="fa fa-undo"></i>
+              </button>
+            </div>
+
             <div id="foul-section-a" style="display: none; align-items: center; justify-content: space-between; margin-bottom: 15px; background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.3); padding: 8px 12px; border-radius: 8px;">
               <div><span style="font-size: 0.8rem; font-weight: bold; color: #ff4757;">TEAM FOULS: </span><span id="foul-count-a" style="font-size: 1.2rem; font-weight: 900; color: #fff;">0</span></div>
-              <button id="btn-reset-foul-a" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;"><i class="fa fa-undo"></i> Reset Foul</button>
             </div>
             
             <hr>
@@ -221,9 +233,17 @@
               </div>
             </div>
             
+            <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+              <button onclick="setAllAsStarter('B')" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(250, 211, 144, 0.2); color: #fad390; border: 1px solid rgba(250, 211, 144, 0.4); border-radius: 6px; font-weight: bold; cursor: pointer;">
+                <i class="fa fa-users me-1"></i> STARTER ALL
+              </button>
+              <button id="btn-reset-foul-b" style="padding: 6px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer;">
+                <i class="fa fa-undo"></i>
+              </button>
+            </div>
+
             <div id="foul-section-b" style="display: none; align-items: center; justify-content: space-between; margin-bottom: 15px; background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.3); padding: 8px 12px; border-radius: 8px;">
               <div><span style="font-size: 0.8rem; font-weight: bold; color: #ff4757;">TEAM FOULS: </span><span id="foul-count-b" style="font-size: 1.2rem; font-weight: 900; color: #fff;">0</span></div>
-              <button id="btn-reset-foul-b" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;"><i class="fa fa-undo"></i> Reset Foul</button>
             </div>
             
             <hr>
@@ -258,6 +278,13 @@
             </ul>
           </div>
         </section>
+
+        <!-- TOMBOL SELESAI (Ditempatkan paling bawah untuk keamanan) -->
+        <div style="margin-top: 2rem; display: flex; justify-content: center; width: 100%;">
+          <button id="btn-finish-match" class="btn-success" style="flex: 1; max-width: 400px; background: #2ed573; box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3); border-radius: 50px; font-weight: 800; border: none; color: white; cursor: pointer; padding: 12px 20px; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 8px; text-transform: uppercase;">
+            <i class="fa fa-flag-checkered"></i> Selesai Pertandingan
+          </button>
+        </div>
       </main>
 
     </div>
@@ -358,8 +385,28 @@
       </div>
     </div>
 
+    <!-- OVERLAY SCANNER QR -->
+    <div id="qr-scanner-overlay" class="modal-overlay" style="display: none; background: rgba(5, 6, 11, 0.95); z-index: 3000; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="text-align: center; max-width: 90%; width: 400px; padding: 20px; background: #121425; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-sizing: border-box;">
+        <h3 style="margin-top: 0; margin-bottom: 10px; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="fa fa-qrcode" style="color: #00d2ff;"></i> Scan QR Code Otorisasi</h3>
+        <p style="font-size: 0.8rem; color: #a4b0be; margin-bottom: 20px;">Arahkan kamera ke QR Code di Dashboard Admin</p>
+        
+        <!-- Video Preview Container -->
+        <div style="position: relative; width: 100%; aspect-ratio: 1; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 20px; border: 2px solid #00d2ff;">
+          <video id="qr-video" style="width: 100%; height: 100%; object-fit: cover;" playsinline></video>
+          <!-- Scanning target indicator -->
+          <div style="position: absolute; top: 15%; left: 15%; right: 15%; bottom: 15%; border: 2px dashed #00d2ff; border-radius: 6px; pointer-events: none; animation: scan-pulse 2s infinite ease-in-out;"></div>
+        </div>
+        
+        <div id="qr-scan-error" style="color: #ff4757; font-size: 0.8rem; margin-bottom: 15px; display: none;"></div>
+        
+        <button id="btn-cancel-scan" class="btn-danger" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; background: #ff4757;">Batal Scan</button>
+      </div>
+    </div>
+
   <audio id="audio-buzzer" src="audio/buzzer.mp3" preload="auto"></audio>
   <div id="ui-lock-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;color:#fff;font-size:2rem;">Match selesai - UI locked</div>
+  <script src="js/jsqr.min.js"></script>
   <script src="js/operator.js"></script>
 </body>
 </html>
