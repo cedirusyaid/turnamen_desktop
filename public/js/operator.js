@@ -22,6 +22,11 @@ let syncQueue = [];
 let isOnline = false;
 let isBypassStarter = false;
 
+// Shot Clock State
+let shotClockSeconds = 24;
+let shotClockInterval = null;
+let showShotClock = false;
+
 // Timer Configuration
 let timerMode = 'up'; // 'up' or 'down'
 let timerDuration = 10 * 60; // Default 10 mins in seconds
@@ -541,6 +546,20 @@ function initMatchPanel() {
     if (timerContainer) timerContainer.style.display = 'flex';
   }
 
+  // Init Shot Clock (Basket Only)
+  const isBasket = matchData && parseInt(matchData.id_cabor) === 3;
+  const shotClockBox = document.getElementById('shot-clock-operator-box');
+  if (isBasket) {
+    showShotClock = true;
+    shotClockSeconds = 24;
+    if (shotClockBox) shotClockBox.style.display = 'block';
+    const disp = document.getElementById('operator-shot-clock-display');
+    if (disp) disp.textContent = shotClockSeconds;
+  } else {
+    showShotClock = false;
+    if (shotClockBox) shotClockBox.style.display = 'none';
+  }
+
   // Init Foul UI
   const hasFoul = matchData.id_cabor == 2 || matchData.id_cabor == 3;
   if (hasFoul) {
@@ -780,6 +799,10 @@ function updateTimerDisplay() {
 btnTimerStart.addEventListener('click', () => {
   if (timerInterval) return;
   
+  if (showShotClock) {
+    startShotClock();
+  }
+  
   // Hentikan timeout jika sedang berjalan saat timer dimulai
   if (timeoutEndTime) {
     stopTimeout();
@@ -909,6 +932,10 @@ btnTimerStop.addEventListener('click', () => {
   clearInterval(timerInterval);
   timerInterval = null;
 
+  if (showShotClock) {
+    pauseShotClock();
+  }
+
   btnTimerStart.disabled = false;
   btnTimerStop.disabled = true;
   broadcastState();
@@ -930,6 +957,12 @@ btnTimerReset.addEventListener('click', () => {
     timerInterval = null;
   }
   timerSeconds = 0;
+  
+  if (showShotClock) {
+    resetShotClock(24);
+    pauseShotClock();
+  }
+  
   updateTimerDisplay();
   btnTimerStart.disabled = false;
   btnTimerStop.disabled = true;
@@ -1065,7 +1098,9 @@ function broadcastState() {
       s5_2: matchData ? (matchData.s5_2 || 0) : 0,
       isTimeout: timeoutEndTime !== null,
       timeoutEndTime: timeoutEndTime,
-      timeoutBy: timeoutBy
+      timeoutBy: timeoutBy,
+      showShotClock: showShotClock,
+      shotClock: shotClockSeconds
     }
   });
   lockUI();
@@ -2717,4 +2752,62 @@ window.addEventListener('load', () => {
 
     return null;
   }
+
+  // --- SHOT CLOCK FUNCTIONS & LISTENERS ---
+  function startShotClock() {
+    if (shotClockInterval) return;
+    const btnStart = document.getElementById('btn-shotclock-start');
+    const btnPause = document.getElementById('btn-shotclock-pause');
+    if (btnStart) btnStart.disabled = true;
+    if (btnPause) btnPause.disabled = false;
+    
+    shotClockInterval = setInterval(() => {
+      if (shotClockSeconds > 0) {
+        shotClockSeconds--;
+        if (shotClockSeconds === 0) {
+          pauseShotClock();
+          playBuzzer();
+        }
+      }
+      updateShotClockDisplay();
+      broadcastState();
+    }, 1000);
+  }
+
+  function pauseShotClock() {
+    if (!shotClockInterval) return;
+    clearInterval(shotClockInterval);
+    shotClockInterval = null;
+    const btnStart = document.getElementById('btn-shotclock-start');
+    const btnPause = document.getElementById('btn-shotclock-pause');
+    if (btnStart) btnStart.disabled = false;
+    if (btnPause) btnPause.disabled = true;
+    broadcastState();
+  }
+
+  function resetShotClock(seconds = 24) {
+    shotClockSeconds = seconds;
+    updateShotClockDisplay();
+    broadcastState();
+  }
+
+  function updateShotClockDisplay() {
+    const disp = document.getElementById('operator-shot-clock-display');
+    if (disp) {
+      disp.textContent = shotClockSeconds;
+    }
+  }
+
+  // Register listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    const scStart = document.getElementById('btn-shotclock-start');
+    const scPause = document.getElementById('btn-shotclock-pause');
+    const scReset24 = document.getElementById('btn-shotclock-reset24');
+    const scReset14 = document.getElementById('btn-shotclock-reset14');
+
+    if (scStart) scStart.addEventListener('click', startShotClock);
+    if (scPause) scPause.addEventListener('click', pauseShotClock);
+    if (scReset24) scReset24.addEventListener('click', () => resetShotClock(24));
+    if (scReset14) scReset14.addEventListener('click', () => resetShotClock(14));
+  });
 });

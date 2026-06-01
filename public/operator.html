@@ -180,6 +180,26 @@
                 <option value="Babak 2">Babak 2</option>
               </select>
             </div>
+            </div>
+
+            <!-- SHOT CLOCK CONTROLS (HANYA UNTUK BASKET) -->
+            <div id="shot-clock-operator-box" style="display: none; width: 100%; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; text-align: center;">
+              <div style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">🏀 SHOT CLOCK (24S)</div>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <div id="operator-shot-clock-display" style="font-size: 3rem; font-family: monospace; font-weight: 900; color: #ff4757; background: #000; padding: 5px 15px; border-radius: 6px; border: 2px solid #ff4757; min-width: 70px;">24</div>
+                
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                  <div style="display: flex; gap: 5px;">
+                    <button type="button" id="btn-shotclock-start" class="btn-time-adj" style="min-width: 60px; background: #2ed573; color: #fff; border: none; font-weight: bold; cursor: pointer;">START</button>
+                    <button type="button" id="btn-shotclock-pause" class="btn-time-adj" style="min-width: 60px; background: #ffa502; color: #fff; border: none; font-weight: bold; cursor: pointer;" disabled>PAUSE</button>
+                  </div>
+                  <div style="display: flex; gap: 5px;">
+                    <button type="button" id="btn-shotclock-reset24" class="btn-time-adj" style="min-width: 60px; font-weight: bold; cursor: pointer;">R24</button>
+                    <button type="button" id="btn-shotclock-reset14" class="btn-time-adj" style="min-width: 60px; font-weight: bold; cursor: pointer;">R14</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div class="timer-adj-group">

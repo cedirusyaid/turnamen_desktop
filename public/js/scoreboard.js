@@ -23,6 +23,9 @@ const foulValB = document.getElementById('sb-foul-b');
 
 const syncIndicator = document.getElementById('sync-indicator');
 
+const shotClockBox = document.getElementById('shot-clock-box');
+const sbShotClock = document.getElementById('sb-shot-clock');
+
 const eventOverlay = document.getElementById('event-overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayPlayer = document.getElementById('overlay-player');
@@ -315,6 +318,23 @@ function updateScoreboardUI(data) {
     if (container) container.classList.remove('has-foul');
     if (foulBoxA) foulBoxA.style.display = 'none';
     if (foulBoxB) foulBoxB.style.display = 'none';
+  }
+
+  // Update Shot Clock (Basket Only)
+  if (data.showShotClock) {
+    if (shotClockBox) shotClockBox.style.display = 'block';
+    if (sbShotClock) {
+      sbShotClock.textContent = data.shotClock;
+      if (data.shotClock <= 5) {
+        sbShotClock.style.color = '#ff4757';
+        if (shotClockBox) shotClockBox.style.borderColor = '#ff4757';
+      } else {
+        sbShotClock.style.color = '#ffa502';
+        if (shotClockBox) shotClockBox.style.borderColor = '#ffa502';
+      }
+    }
+  } else {
+    if (shotClockBox) shotClockBox.style.display = 'none';
   }
 
   if (syncIndicator) {
