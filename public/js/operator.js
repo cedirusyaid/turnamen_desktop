@@ -31,6 +31,7 @@ let shotClockActivated = false;
 // Shot Clock Functions
 function startShotClock() {
   shotClockActivated = true;
+  updateShotClockToggleBtnDisplay();
   if (shotClockInterval) return;
   const btnStart = document.getElementById('btn-shotclock-start');
   const btnPause = document.getElementById('btn-shotclock-pause');
@@ -66,6 +67,15 @@ function resetShotClock(seconds = 24, activate = true) {
   if (activate) {
     shotClockActivated = true;
   }
+  updateShotClockToggleBtnDisplay();
+  updateShotClockDisplay();
+  broadcastState();
+}
+
+function adjustShotClock(amount) {
+  shotClockSeconds += amount;
+  if (shotClockSeconds < 0) shotClockSeconds = 0;
+  if (shotClockSeconds > 99) shotClockSeconds = 99;
   updateShotClockDisplay();
   broadcastState();
 }
@@ -74,6 +84,23 @@ function updateShotClockDisplay() {
   const disp = document.getElementById('operator-shot-clock-display');
   if (disp) {
     disp.textContent = shotClockSeconds;
+  }
+}
+
+function updateShotClockToggleBtnDisplay() {
+  const btn = document.getElementById('btn-shotclock-toggle-display');
+  if (btn) {
+    if (shotClockActivated) {
+      btn.innerHTML = '<i class="fa fa-eye-slash"></i> SEMBUNYIKAN';
+      btn.style.background = 'rgba(255, 71, 87, 0.1)';
+      btn.style.borderColor = 'rgba(255, 71, 87, 0.4)';
+      btn.style.color = '#ff4757';
+    } else {
+      btn.innerHTML = '<i class="fa fa-eye"></i> TAMPILKAN';
+      btn.style.background = 'rgba(0, 210, 255, 0.1)';
+      btn.style.borderColor = 'rgba(0, 210, 255, 0.4)';
+      btn.style.color = '#00d2ff';
+    }
   }
 }
 
@@ -602,6 +629,7 @@ function initMatchPanel() {
   if (isBasket) {
     showShotClock = true;
     shotClockActivated = false;
+    updateShotClockToggleBtnDisplay();
     shotClockSeconds = 24;
     if (shotClockBox) shotClockBox.style.display = 'block';
     const disp = document.getElementById('operator-shot-clock-display');
@@ -852,11 +880,21 @@ const scStartBtn = document.getElementById('btn-shotclock-start');
 const scPauseBtn = document.getElementById('btn-shotclock-pause');
 const scReset24Btn = document.getElementById('btn-shotclock-reset24');
 const scReset14Btn = document.getElementById('btn-shotclock-reset14');
+const scPlusBtn = document.getElementById('btn-shotclock-plus');
+const scMinusBtn = document.getElementById('btn-shotclock-minus');
+const scToggleDisplayBtn = document.getElementById('btn-shotclock-toggle-display');
 
 if (scStartBtn) scStartBtn.addEventListener('click', startShotClock);
 if (scPauseBtn) scPauseBtn.addEventListener('click', pauseShotClock);
 if (scReset24Btn) scReset24Btn.addEventListener('click', () => resetShotClock(24));
 if (scReset14Btn) scReset14Btn.addEventListener('click', () => resetShotClock(14));
+if (scPlusBtn) scPlusBtn.addEventListener('click', () => adjustShotClock(1));
+if (scMinusBtn) scMinusBtn.addEventListener('click', () => adjustShotClock(-1));
+if (scToggleDisplayBtn) scToggleDisplayBtn.addEventListener('click', () => {
+  shotClockActivated = !shotClockActivated;
+  updateShotClockToggleBtnDisplay();
+  broadcastState();
+});
 
 btnTimerStart.addEventListener('click', () => {
   if (timerInterval) return;
@@ -1022,6 +1060,7 @@ btnTimerReset.addEventListener('click', () => {
   
   if (showShotClock) {
     shotClockActivated = false;
+    updateShotClockToggleBtnDisplay();
     resetShotClock(24, false);
     pauseShotClock();
   }

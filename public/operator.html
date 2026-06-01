@@ -185,8 +185,16 @@
             <div id="shot-clock-operator-box" style="display: none; width: 100%; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; text-align: center;">
               <div style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">🏀 SHOT CLOCK (24S)</div>
               <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <!-- Tombol Tambah/Kurang Detik (Kiri) -->
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <button type="button" id="btn-shotclock-plus" class="btn-time-adj" style="min-width: 32px; padding: 2px 5px; font-weight: bold; font-size: 0.8rem; cursor: pointer;" title="Tambah 1 Detik">+</button>
+                  <button type="button" id="btn-shotclock-minus" class="btn-time-adj" style="min-width: 32px; padding: 2px 5px; font-weight: bold; font-size: 0.8rem; cursor: pointer;" title="Kurangi 1 Detik">-</button>
+                </div>
+
+                <!-- Display Waktu -->
                 <div id="operator-shot-clock-display" style="font-size: 3rem; font-family: monospace; font-weight: 900; color: #ff4757; background: #000; padding: 5px 15px; border-radius: 6px; border: 2px solid #ff4757; min-width: 70px;">24</div>
                 
+                <!-- Tombol Aksi Kanan -->
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                   <div style="display: flex; gap: 5px;">
                     <button type="button" id="btn-shotclock-start" class="btn-time-adj" style="min-width: 60px; background: #2ed573; color: #fff; border: none; font-weight: bold; cursor: pointer;">START</button>
@@ -197,6 +205,13 @@
                     <button type="button" id="btn-shotclock-reset14" class="btn-time-adj" style="min-width: 60px; font-weight: bold; cursor: pointer;">R14</button>
                   </div>
                 </div>
+              </div>
+
+              <!-- Tombol Tampilkan/Sembunyikan Manual (Bawah) -->
+              <div style="margin-top: 10px; display: flex; justify-content: center;">
+                <button type="button" id="btn-shotclock-toggle-display" class="btn-time-adj" style="min-width: 140px; font-weight: bold; background: rgba(0, 210, 255, 0.1); border-color: rgba(0, 210, 255, 0.4); color: #00d2ff; border-radius: 6px; cursor: pointer; padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i class="fa fa-eye"></i> TAMPILKAN
+                </button>
               </div>
             </div>
           </div>

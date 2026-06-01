@@ -1,5 +1,47 @@
 const broadcastChannel = new BroadcastChannel('live_score_channel');
 
+// Helper to set monospaced segments with digital ghost segments for Orbitron
+function setSegmentedText(element, text, charWidth = '0.85ch') {
+  if (!element) return;
+  element.innerHTML = '';
+  const chars = String(text).split('');
+  chars.forEach(char => {
+    const container = document.createElement('span');
+    container.className = 'digit-container';
+    container.style.display = 'inline-block';
+    container.style.textAlign = 'center';
+    container.style.position = 'relative';
+    
+    if (char === ':') {
+      container.style.width = '0.3ch';
+      
+      const valSpan = document.createElement('span');
+      valSpan.textContent = ':';
+      valSpan.className = 'digit-val';
+      container.appendChild(valSpan);
+    } else if (char === ' ') {
+      container.style.width = charWidth;
+      // Empty spacer
+    } else {
+      container.style.width = charWidth;
+      
+      // Ghost background segment "8" (samar di belakang)
+      const bgSpan = document.createElement('span');
+      bgSpan.textContent = '8';
+      bgSpan.className = 'digit-bg';
+      container.appendChild(bgSpan);
+      
+      // Active segment (nilai asli)
+      const valSpan = document.createElement('span');
+      valSpan.textContent = char;
+      valSpan.className = 'digit-val';
+      container.appendChild(valSpan);
+    }
+    
+    element.appendChild(container);
+  });
+}
+
 // DOM Elements
 const sbCabor = document.getElementById('sb-cabor');
 const sbTournament = document.getElementById('sb-tournament');
@@ -51,6 +93,7 @@ setInterval(() => {
     updateTimeoutDisplay();
 }, 1000);
 
+// TIMEOUT OVERLAY DISPLAY SINKRONISASI
 function updateTimeoutDisplay() {
     if (!timeoutEndTime) {
         document.getElementById('timeout-overlay').classList.remove('active');
@@ -176,8 +219,8 @@ function updateScoreboardUI(data) {
   prevScoreA = mainScoreA;
   prevScoreB = mainScoreB;
 
-  sbScoreA.textContent = mainScoreA;
-  sbScoreB.textContent = mainScoreB;
+  setSegmentedText(sbScoreA, mainScoreA, '0.85ch');
+  setSegmentedText(sbScoreB, mainScoreB, '0.85ch');
   
   // Set-based Cabor UI
   const setBottomPanel = document.getElementById('set_bottom_panel');
@@ -237,11 +280,11 @@ function updateScoreboardUI(data) {
     // Tampilkan Sets Won Box (kotak emas)
     if (setsWonBoxA) {
       setsWonBoxA.style.display = 'inline-flex';
-      document.getElementById('sets_won_1').textContent = setsWonA;
+      setSegmentedText(document.getElementById('sets_won_1'), setsWonA, '0.85ch');
     }
     if (setsWonBoxB) {
       setsWonBoxB.style.display = 'inline-flex';
-      document.getElementById('sets_won_2').textContent = setsWonB;
+      setSegmentedText(document.getElementById('sets_won_2'), setsWonB, '0.85ch');
     }
 
     // Tennis Point Box (kotak cyan)
@@ -263,8 +306,8 @@ function updateScoreboardUI(data) {
       
       const pt1 = document.getElementById('tennis_pt_1');
       const pt2 = document.getElementById('tennis_pt_2');
-      if (pt1) pt1.textContent = txt1;
-      if (pt2) pt2.textContent = txt2;
+      if (pt1) setSegmentedText(pt1, txt1, '0.85ch');
+      if (pt2) setSegmentedText(pt2, txt2, '0.85ch');
     } else {
       if (tennisPointBoxA) tennisPointBoxA.style.display = 'none';
       if (tennisPointBoxB) tennisPointBoxB.style.display = 'none';
@@ -274,8 +317,7 @@ function updateScoreboardUI(data) {
     if (container) container.classList.remove('mode-set');
     // Normal Cabor (akumulasi)
     sbTimer.style.display = 'block';
-    sbTimer.textContent = data.timerText;
-    sbTimer.style.fontSize = '44vh';
+    setSegmentedText(sbTimer, data.timerText, '0.85ch');
     
     if (setBottomPanel) setBottomPanel.style.display = 'none';
     if (setsWonBoxA) setsWonBoxA.style.display = 'none';
@@ -301,18 +343,35 @@ function updateScoreboardUI(data) {
     if (footerTimer) footerTimer.style.display = 'flex';
   }
 
+  // Handle Team Fouls (Futsal / Basket)
   if (data.hasFoul) {
     if (container) container.classList.add('has-foul');
-    if (foulBoxA) foulBoxA.style.display = 'inline-block';
-    if (foulBoxB) foulBoxB.style.display = 'inline-block';
+    if (foulBoxA) foulBoxA.style.display = 'inline-flex';
+    if (foulBoxB) foulBoxB.style.display = 'inline-flex';
     
     if (foulValA) {
-        foulValA.textContent = data.foulA;
-        foulValA.className = data.foulA >= 5 ? 'foul-val text-danger' : 'foul-val text-warning';
+        setSegmentedText(foulValA, data.foulA, '0.85ch');
+        if (data.foulA >= 5) {
+            foulBoxA.style.borderColor = '#ff3838';
+            foulBoxA.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 15px rgba(255, 56, 56, 0.4)';
+            foulValA.style.color = '#ff3838';
+        } else {
+            foulBoxA.style.borderColor = '#2d3748';
+            foulBoxA.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9)';
+            foulValA.style.color = '#ffa502';
+        }
     }
     if (foulValB) {
-        foulValB.textContent = data.foulB;
-        foulValB.className = data.foulB >= 5 ? 'foul-val text-danger' : 'foul-val text-warning';
+        setSegmentedText(foulValB, data.foulB, '0.85ch');
+        if (data.foulB >= 5) {
+            foulBoxB.style.borderColor = '#ff3838';
+            foulBoxB.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 15px rgba(255, 56, 56, 0.4)';
+            foulValB.style.color = '#ff3838';
+        } else {
+            foulBoxB.style.borderColor = '#2d3748';
+            foulBoxB.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9)';
+            foulValB.style.color = '#ffa502';
+        }
     }
   } else {
     if (container) container.classList.remove('has-foul');
@@ -324,13 +383,19 @@ function updateScoreboardUI(data) {
   if (data.showShotClock) {
     if (shotClockBox) shotClockBox.style.display = 'block';
     if (sbShotClock) {
-      sbShotClock.textContent = data.shotClock;
+      setSegmentedText(sbShotClock, data.shotClock, '0.85ch');
       if (data.shotClock <= 5) {
-        sbShotClock.style.color = '#ff4757';
-        if (shotClockBox) shotClockBox.style.borderColor = '#ff4757';
+        sbShotClock.style.color = '#ff3838';
+        if (shotClockBox) {
+          shotClockBox.style.borderColor = '#ff3838';
+          shotClockBox.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 15px rgba(255, 56, 56, 0.4)';
+        }
       } else {
         sbShotClock.style.color = '#ffa502';
-        if (shotClockBox) shotClockBox.style.borderColor = '#ffa502';
+        if (shotClockBox) {
+          shotClockBox.style.borderColor = '#ffa502';
+          shotClockBox.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 15px rgba(255, 165, 2, 0.3)';
+        }
       }
     }
   } else {
@@ -348,7 +413,6 @@ function updateScoreboardUI(data) {
 
 // 2. CELEBRATION EFFECT (GOL!)
 function triggerGoalCelebration(data) {
-  // Clear timeout lama jika gol beruntun terjadi cepat
   if (overlayTimeout) {
     clearTimeout(overlayTimeout);
   }
@@ -364,7 +428,6 @@ function triggerGoalCelebration(data) {
 
   eventOverlay.classList.add('active');
 
-  // Matikan overlay otomatis setelah 5 detik
   overlayTimeout = setTimeout(() => {
     eventOverlay.classList.remove('active');
   }, 5000);
@@ -378,8 +441,6 @@ function animateScoreChange(el) {
 }
 
 // REQUEST SEEDED STATE ON LOAD
-// Apabila layar videotron dibuka belakangan, ia meminta state terakhir dari operator
 window.addEventListener('load', () => {
-  // Broadcast request ke operator agar dikirimkan state terkini
   broadcastChannel.postMessage({ type: 'REQUEST_STATE' });
 });
