@@ -26,9 +26,11 @@ let isBypassStarter = false;
 let shotClockSeconds = 24;
 let shotClockInterval = null;
 let showShotClock = false;
+let shotClockActivated = false;
 
 // Shot Clock Functions
 function startShotClock() {
+  shotClockActivated = true;
   if (shotClockInterval) return;
   const btnStart = document.getElementById('btn-shotclock-start');
   const btnPause = document.getElementById('btn-shotclock-pause');
@@ -59,8 +61,11 @@ function pauseShotClock() {
   broadcastState();
 }
 
-function resetShotClock(seconds = 24) {
+function resetShotClock(seconds = 24, activate = true) {
   shotClockSeconds = seconds;
+  if (activate) {
+    shotClockActivated = true;
+  }
   updateShotClockDisplay();
   broadcastState();
 }
@@ -596,6 +601,7 @@ function initMatchPanel() {
   const shotClockBox = document.getElementById('shot-clock-operator-box');
   if (isBasket) {
     showShotClock = true;
+    shotClockActivated = false;
     shotClockSeconds = 24;
     if (shotClockBox) shotClockBox.style.display = 'block';
     const disp = document.getElementById('operator-shot-clock-display');
@@ -1015,7 +1021,8 @@ btnTimerReset.addEventListener('click', () => {
   timerSeconds = 0;
   
   if (showShotClock) {
-    resetShotClock(24);
+    shotClockActivated = false;
+    resetShotClock(24, false);
     pauseShotClock();
   }
   
@@ -1155,7 +1162,7 @@ function broadcastState() {
       isTimeout: timeoutEndTime !== null,
       timeoutEndTime: timeoutEndTime,
       timeoutBy: timeoutBy,
-      showShotClock: showShotClock,
+      showShotClock: showShotClock && shotClockActivated,
       shotClock: shotClockSeconds
     }
   });
