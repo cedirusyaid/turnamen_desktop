@@ -27,6 +27,51 @@ let shotClockSeconds = 24;
 let shotClockInterval = null;
 let showShotClock = false;
 
+// Shot Clock Functions
+function startShotClock() {
+  if (shotClockInterval) return;
+  const btnStart = document.getElementById('btn-shotclock-start');
+  const btnPause = document.getElementById('btn-shotclock-pause');
+  if (btnStart) btnStart.disabled = true;
+  if (btnPause) btnPause.disabled = false;
+  
+  shotClockInterval = setInterval(() => {
+    if (shotClockSeconds > 0) {
+      shotClockSeconds--;
+      if (shotClockSeconds === 0) {
+        pauseShotClock();
+        playBuzzer();
+      }
+    }
+    updateShotClockDisplay();
+    broadcastState();
+  }, 1000);
+}
+
+function pauseShotClock() {
+  if (!shotClockInterval) return;
+  clearInterval(shotClockInterval);
+  shotClockInterval = null;
+  const btnStart = document.getElementById('btn-shotclock-start');
+  const btnPause = document.getElementById('btn-shotclock-pause');
+  if (btnStart) btnStart.disabled = false;
+  if (btnPause) btnPause.disabled = true;
+  broadcastState();
+}
+
+function resetShotClock(seconds = 24) {
+  shotClockSeconds = seconds;
+  updateShotClockDisplay();
+  broadcastState();
+}
+
+function updateShotClockDisplay() {
+  const disp = document.getElementById('operator-shot-clock-display');
+  if (disp) {
+    disp.textContent = shotClockSeconds;
+  }
+}
+
 // Timer Configuration
 let timerMode = 'up'; // 'up' or 'down'
 let timerDuration = 10 * 60; // Default 10 mins in seconds
@@ -795,6 +840,17 @@ function updateTimerDisplay() {
   timerMin.textContent = formatNum(min);
   timerSec.textContent = formatNum(sec);
 }
+
+// Register Shot Clock Click Listeners
+const scStartBtn = document.getElementById('btn-shotclock-start');
+const scPauseBtn = document.getElementById('btn-shotclock-pause');
+const scReset24Btn = document.getElementById('btn-shotclock-reset24');
+const scReset14Btn = document.getElementById('btn-shotclock-reset14');
+
+if (scStartBtn) scStartBtn.addEventListener('click', startShotClock);
+if (scPauseBtn) scPauseBtn.addEventListener('click', pauseShotClock);
+if (scReset24Btn) scReset24Btn.addEventListener('click', () => resetShotClock(24));
+if (scReset14Btn) scReset14Btn.addEventListener('click', () => resetShotClock(14));
 
 btnTimerStart.addEventListener('click', () => {
   if (timerInterval) return;
@@ -2752,62 +2808,4 @@ window.addEventListener('load', () => {
 
     return null;
   }
-
-  // --- SHOT CLOCK FUNCTIONS & LISTENERS ---
-  function startShotClock() {
-    if (shotClockInterval) return;
-    const btnStart = document.getElementById('btn-shotclock-start');
-    const btnPause = document.getElementById('btn-shotclock-pause');
-    if (btnStart) btnStart.disabled = true;
-    if (btnPause) btnPause.disabled = false;
-    
-    shotClockInterval = setInterval(() => {
-      if (shotClockSeconds > 0) {
-        shotClockSeconds--;
-        if (shotClockSeconds === 0) {
-          pauseShotClock();
-          playBuzzer();
-        }
-      }
-      updateShotClockDisplay();
-      broadcastState();
-    }, 1000);
-  }
-
-  function pauseShotClock() {
-    if (!shotClockInterval) return;
-    clearInterval(shotClockInterval);
-    shotClockInterval = null;
-    const btnStart = document.getElementById('btn-shotclock-start');
-    const btnPause = document.getElementById('btn-shotclock-pause');
-    if (btnStart) btnStart.disabled = false;
-    if (btnPause) btnPause.disabled = true;
-    broadcastState();
-  }
-
-  function resetShotClock(seconds = 24) {
-    shotClockSeconds = seconds;
-    updateShotClockDisplay();
-    broadcastState();
-  }
-
-  function updateShotClockDisplay() {
-    const disp = document.getElementById('operator-shot-clock-display');
-    if (disp) {
-      disp.textContent = shotClockSeconds;
-    }
-  }
-
-  // Register listeners
-  document.addEventListener('DOMContentLoaded', () => {
-    const scStart = document.getElementById('btn-shotclock-start');
-    const scPause = document.getElementById('btn-shotclock-pause');
-    const scReset24 = document.getElementById('btn-shotclock-reset24');
-    const scReset14 = document.getElementById('btn-shotclock-reset14');
-
-    if (scStart) scStart.addEventListener('click', startShotClock);
-    if (scPause) scPause.addEventListener('click', pauseShotClock);
-    if (scReset24) scReset24.addEventListener('click', () => resetShotClock(24));
-    if (scReset14) scReset14.addEventListener('click', () => resetShotClock(14));
-  });
 });
