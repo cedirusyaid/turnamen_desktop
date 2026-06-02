@@ -165,7 +165,11 @@ const btnTimerReset = document.getElementById('btn-timer-reset');
 const btnFinishMatch = document.getElementById('btn-finish-match');
 
 const scoreAUp = document.getElementById('btn-score-a-up');
+const scoreAUp2 = document.getElementById('btn-score-a-up-2');
+const scoreAUp3 = document.getElementById('btn-score-a-up-3');
 const scoreBUp = document.getElementById('btn-score-b-up');
+const scoreBUp2 = document.getElementById('btn-score-b-up-2');
+const scoreBUp3 = document.getElementById('btn-score-b-up-3');
 
 const foulSectionA = document.getElementById('foul-section-a');
 const foulCountA = document.getElementById('foul-count-a');
@@ -626,6 +630,12 @@ function initMatchPanel() {
   // Init Shot Clock (Basket Only)
   const isBasket = matchData && parseInt(matchData.id_cabor) === 3;
   const shotClockBox = document.getElementById('shot-clock-operator-box');
+  
+  // Tampilkan/Sembunyikan tombol skor +2 +3 basket
+  document.querySelectorAll('.btn-basket-only').forEach(el => {
+    el.style.display = isBasket ? 'inline-block' : 'none';
+  });
+
   if (isBasket) {
     showShotClock = true;
     shotClockActivated = false;
@@ -1228,9 +1238,21 @@ function lockUI() {
 scoreAUp.addEventListener('click', () => {
   recordQuickScoreEvent('A', 1);
 });
+scoreAUp2.addEventListener('click', () => {
+  recordQuickScoreEvent('A', 2);
+});
+scoreAUp3.addEventListener('click', () => {
+  recordQuickScoreEvent('A', 3);
+});
 
 scoreBUp.addEventListener('click', () => {
   recordQuickScoreEvent('B', 1);
+});
+scoreBUp2.addEventListener('click', () => {
+  recordQuickScoreEvent('B', 2);
+});
+scoreBUp3.addEventListener('click', () => {
+  recordQuickScoreEvent('B', 3);
 });
 
 function recordQuickScoreEvent(team, points) {
