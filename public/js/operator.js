@@ -813,6 +813,8 @@ function renderRoster() {
               <button class="btn-player-action assist" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'assist', 0)" title="Assist">AST</button>
               <button class="btn-player-action rebound" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'rebound', 0)" title="Rebound">REB</button>
               <button class="btn-player-action block" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'block', 0)" title="Block">BLK</button>
+              <button class="btn-player-action bd" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'steal', 0)" title="Steal">STL</button>
+              <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'turnover', 0)" title="Turnover">TO</button>
             `;
           } else {
             actionButtons = `
@@ -1796,6 +1798,8 @@ window.recordAnonymousEvent = function(team) {
         <option value="POIN_2">2 Point</option>
         <option value="POIN_3">3 Point</option>
         <option value="FOUL">Foul</option>
+        <option value="STEAL">Steal</option>
+        <option value="TURNOVER">Turnover</option>
       `;
     } else {
       anonEventTypeSelect.innerHTML = `
@@ -2024,6 +2028,12 @@ function renderTimeline() {
     } else if (e.jenis === 'foul') {
       badgeClass = "kartu_merah";
       badgeText = "Foul";
+    } else if (e.jenis === 'steal') {
+      badgeClass = "gol";
+      badgeText = "Steal";
+    } else if (e.jenis === 'turnover') {
+      badgeClass = "kartu_merah";
+      badgeText = "Turnover";
     } else if (e.jenis === 'starter') {
       badgeClass = "gol";
       badgeText = "Starter";
