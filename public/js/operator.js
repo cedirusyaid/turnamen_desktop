@@ -1321,7 +1321,8 @@ function recordQuickScoreEvent(team, points) {
     matchData[key] = (parseInt(matchData[key]) || 0) + weight;
   }
 
-  const elapsedMinutes = Math.floor(timerSeconds / 60);
+  // Hitung menit berjalan (0:01 - 0:59 tercatat sebagai menit ke-1)
+  const elapsedMinutes = (timerSeconds > 0) ? Math.floor((timerSeconds - 1) / 60) + 1 : 0;
 
   // Buat payload event
   const eventPayload = {
@@ -1614,7 +1615,8 @@ btnAnonEventB.addEventListener('click', () => {
 
 window.recordPlayerEvent = function(team, personilId, eventType, weight = 0) {
   const teamName = team === 'A' ? matchData.team_a_nama : matchData.team_b_nama;
-  const elapsedMinutes = Math.floor(timerSeconds / 60);
+  // Hitung menit berjalan (0:01 - 0:59 tercatat sebagai menit ke-1)
+  const elapsedMinutes = (timerSeconds > 0) ? Math.floor((timerSeconds - 1) / 60) + 1 : 0;
 
   const players = team === 'A' ? matchData.players_a : matchData.players_b;
   const player = players.find(p => p.id_personil == personilId);
@@ -1752,7 +1754,8 @@ window.togglePlayerStatus = function(team, personilId, newStatus) {
   }
 
   const teamId = team === 'A' ? matchData.id_team_a : matchData.id_team_b;
-  const elapsedMinutes = Math.floor(timerSeconds / 60);
+  // Hitung menit berjalan (0:01 - 0:59 tercatat sebagai menit ke-1)
+  const elapsedMinutes = (timerSeconds > 0) ? Math.floor((timerSeconds - 1) / 60) + 1 : 0;
 
   const eventPayload = {
     id_event: generateUUID(),
@@ -1905,7 +1908,8 @@ window.saveAnonymousEvent = function() {
   }
 
   const teamName = team === 'A' ? matchData.team_a_nama : matchData.team_b_nama;
-  const elapsedMinutes = Math.floor(timerSeconds / 60);
+  // Hitung menit berjalan (0:01 - 0:59 tercatat sebagai menit ke-1)
+  const elapsedMinutes = (timerSeconds > 0) ? Math.floor((timerSeconds - 1) / 60) + 1 : 0;
 
   const eventPayload = {
     id_event: generateUUID(),
