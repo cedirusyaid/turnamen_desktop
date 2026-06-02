@@ -99,7 +99,6 @@ body {
   border-radius: 50px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
 }
 
 .sb-badge-phase {
@@ -124,7 +123,6 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 /* MAIN BOARD LAYOUT */
@@ -154,7 +152,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #fff;
-  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 /* DIGITAL DIGITS (GHOST SEGMENTS & NEON EFFECT) */
@@ -209,7 +206,6 @@ body {
 
 #sb-score-a {
   color: #ff2e63;
-  text-shadow: 0 0 12px rgba(255, 46, 99, 0.85), 0 0 25px rgba(255, 46, 99, 0.4);
 }
 
 #sb-score-a .digit-bg {
@@ -219,7 +215,6 @@ body {
 
 #sb-score-b {
   color: #00d2ff;
-  text-shadow: 0 0 12px rgba(0, 210, 255, 0.85), 0 0 25px rgba(0, 210, 255, 0.4);
 }
 
 #sb-score-b .digit-bg {
@@ -232,7 +227,6 @@ body {
   font-size: 15vh;
   color: #ff9f1c;
   animation: blink 1s infinite;
-  text-shadow: 0 0 15px rgba(255, 159, 28, 0.6);
 }
 
 /* FOUL INDICATORS - Compact Style */
@@ -246,7 +240,7 @@ body {
   align-items: center;
   margin-top: 1.5vh;
   min-width: 11vw;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
   transition: all 0.3s ease;
 }
 
@@ -256,7 +250,6 @@ body {
   font-weight: 900;
   color: #ffa502;
   line-height: 1;
-  text-shadow: 0 0 10px rgba(255, 165, 2, 0.6);
 }
 
 .foul-val .digit-bg {
@@ -300,8 +293,7 @@ body {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.6);
-  text-shadow: 0 0 15px rgba(255, 159, 28, 0.85), 0 0 30px rgba(255, 159, 28, 0.4);
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.95);
 }
 
 .sb-timer .digit-bg {
@@ -349,7 +341,6 @@ body {
   letter-spacing: 5px;
   text-transform: uppercase;
   color: #2ed573;
-  text-shadow: 0 0 40px #2ed573;
   animation: pulse 1s infinite alternate;
   margin-bottom: 2vh;
 }
@@ -378,8 +369,8 @@ body {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); text-shadow: 0 0 30px #2ed573; }
-  100% { transform: scale(1.05); text-shadow: 0 0 60px #2ed573; }
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
 }
 
 @keyframes strobe {
@@ -388,9 +379,9 @@ body {
 }
 
 @keyframes scorePop {
-  0% { transform: scale(1); color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-  50% { transform: scale(1.25); color: #ecc94b; text-shadow: 0 0 50px rgba(236, 201, 75, 1); }
-  100% { transform: scale(1); color: #fff; text-shadow: 0 0 40px rgba(255, 255, 255, 0.3); }
+  0% { transform: scale(1); color: #fff; }
+  50% { transform: scale(1.25); color: #ecc94b; }
+  100% { transform: scale(1); color: #fff; }
 }
 
 .score-pop {
@@ -423,7 +414,7 @@ body {
   padding: 0.5vh;
   width: 5.5vh;
   height: 5.5vh;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.95), 0 0 12px rgba(236, 201, 75, 0.3);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.95);
   backdrop-filter: blur(10px);
 }
 
@@ -432,7 +423,6 @@ body {
   font-size: 3.2vh;
   font-weight: 900;
   color: #ecc94b;
-  text-shadow: 0 0 8px rgba(236, 201, 75, 0.75);
   line-height: 1;
 }
 
@@ -451,7 +441,7 @@ body {
   padding: 0.5vh;
   width: 6.5vh;
   height: 5.5vh;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.95), 0 0 12px rgba(0, 210, 255, 0.4);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.95);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
@@ -461,7 +451,6 @@ body {
   font-size: 3vh;
   font-weight: 900;
   color: #00d2ff;
-  text-shadow: 0 0 8px rgba(0, 210, 255, 0.7);
   line-height: 1;
 }
 
@@ -503,7 +492,6 @@ body {
 
 .set-card.active {
   border-color: #ecc94b;
-  box-shadow: 0 0 20px rgba(236, 201, 75, 0.4), inset 0 0 8px rgba(236, 201, 75, 0.1);
   transform: scale(1.06);
 }
 
@@ -518,7 +506,6 @@ body {
 
 .set-card.active .set-card-header {
   color: #ecc94b;
-  text-shadow: 0 0 10px rgba(236, 201, 75, 0.3);
 }
 
 .set-card-score {
@@ -526,13 +513,11 @@ body {
   font-size: 5.5vh;
   font-weight: 900;
   color: #fff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
   line-height: 1;
 }
 
 .set-card.active .set-card-score {
   color: #fff;
-  text-shadow: 0 0 20px rgba(236, 201, 75, 0.9);
 }
 
 /* OVERRIDE WIDTH & FONT SIZE UNTUK MODE SET AGAR TIDAK KACAU/PECAH */
@@ -596,7 +581,7 @@ body {
   padding: 0.8vh 1.5vw;
   min-width: 8vw;
   text-align: center;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.95), 0 0 15px rgba(255, 165, 2, 0.35);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.95);
   margin-top: 1.5vh;
   transition: all 0.3s ease;
 }
@@ -617,7 +602,6 @@ body {
   font-weight: 900;
   color: #ffa502;
   line-height: 1;
-  text-shadow: 0 0 12px rgba(255, 165, 2, 0.75);
 }
 
 #sb-shot-clock .digit-bg {
