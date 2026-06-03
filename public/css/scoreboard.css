@@ -188,7 +188,7 @@ body {
 
 .sb-score {
   font-family: 'Orbitron', sans-serif;
-  font-size: 24vh;
+  font-size: 22vh;
   font-weight: 900;
   min-width: 16vw;
   text-align: center;
@@ -196,7 +196,7 @@ body {
   background: #020306;
   border: 4px solid #131722;
   border-radius: 16px;
-  padding: 1.5vh 2.5vw;
+  padding: 1.2vh 2.5vw;
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -239,6 +239,7 @@ body {
   flex-direction: column;
   align-items: center;
   margin-top: 1.5vh;
+  margin-bottom: 1.5vh;
   min-width: 11vw;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
   transition: all 0.3s ease;
@@ -280,15 +281,15 @@ body {
 
 .sb-timer {
   font-family: 'Orbitron', sans-serif;
-  font-size: 34vh;
+  font-size: 28vh;
   font-weight: 900;
   color: #ff9f1c;
-  letter-spacing: -0.5vh;
+  letter-spacing: 0.2vh;
   line-height: 1;
   background: #020306;
   border: 4px solid #131722;
   border-radius: 24px;
-  padding: 2.5vh 4vw;
+  padding: 2vh 4vw;
   min-width: 40vw;
   display: inline-flex;
   justify-content: center;
@@ -523,7 +524,7 @@ body {
 /* OVERRIDE WIDTH & FONT SIZE UNTUK MODE SET AGAR TIDAK KACAU/PECAH */
 .scoreboard-container.mode-set .sb-score {
   min-width: 10vw;
-  font-size: 24vh;
+  font-size: 22vh;
 }
 
 .scoreboard-container.mode-set .sb-score-container {
@@ -540,25 +541,26 @@ body {
 
 /* OVERRIDE UNTUK CABOR DENGAN FOULS (FUTSAL & BASKET) AGAR KOTAK FOUL TIDAK MELEWATI BATAS BAWAH */
 .scoreboard-container.has-foul .sb-score {
-  font-size: 22vh;
+  font-size: 20vh;
 }
 
 .scoreboard-container.has-foul .sb-team-name {
-  font-size: 5vh;
+  font-size: 4.5vh;
 }
 
 .scoreboard-container.has-foul .foul-box {
   margin-top: 1vh;
-  padding: 0.8vh 1.5vw;
+  margin-bottom: 2vh;
+  padding: 0.6vh 1.5vw;
   min-width: 12vw;
 }
 
 .scoreboard-container.has-foul .foul-val {
-  font-size: 4.5vh;
+  font-size: 4.2vh;
 }
 
 .scoreboard-container.has-foul .foul-label {
-  font-size: 1.5vh;
+  font-size: 1.4vh;
 }
 
 .scoreboard-container.has-foul .sb-board {
@@ -570,7 +572,7 @@ body {
 }
 
 .scoreboard-container.has-foul .sb-timer {
-  font-size: 38vh;
+  font-size: 30vh;
 }
 
 /* SHOT CLOCK PANEL */

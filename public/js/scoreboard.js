@@ -1,7 +1,7 @@
 const broadcastChannel = new BroadcastChannel('live_score_channel');
 
 // Helper to set monospaced segments with digital ghost segments for Orbitron
-function setSegmentedText(element, text, charWidth = '0.85ch') {
+function setSegmentedText(element, text, charWidth = '0.92ch') {
   if (!element) return;
   element.innerHTML = '';
   const chars = String(text).split('');
@@ -213,8 +213,8 @@ function updateScoreboardUI(data) {
   prevScoreA = mainScoreA;
   prevScoreB = mainScoreB;
 
-  setSegmentedText(sbScoreA, mainScoreA, '0.85ch');
-  setSegmentedText(sbScoreB, mainScoreB, '0.85ch');
+  setSegmentedText(sbScoreA, mainScoreA, '0.92ch');
+  setSegmentedText(sbScoreB, mainScoreB, '0.92ch');
   
   // Set-based Cabor UI
   const setBottomPanel = document.getElementById('set_bottom_panel');
@@ -274,11 +274,11 @@ function updateScoreboardUI(data) {
     // Tampilkan Sets Won Box (kotak emas)
     if (setsWonBoxA) {
       setsWonBoxA.style.display = 'inline-flex';
-      setSegmentedText(document.getElementById('sets_won_1'), setsWonA, '0.85ch');
+      setSegmentedText(document.getElementById('sets_won_1'), setsWonA, '0.92ch');
     }
     if (setsWonBoxB) {
       setsWonBoxB.style.display = 'inline-flex';
-      setSegmentedText(document.getElementById('sets_won_2'), setsWonB, '0.85ch');
+      setSegmentedText(document.getElementById('sets_won_2'), setsWonB, '0.92ch');
     }
 
     // Tennis Point Box (kotak cyan)
@@ -300,8 +300,8 @@ function updateScoreboardUI(data) {
       
       const pt1 = document.getElementById('tennis_pt_1');
       const pt2 = document.getElementById('tennis_pt_2');
-      if (pt1) setSegmentedText(pt1, txt1, '0.85ch');
-      if (pt2) setSegmentedText(pt2, txt2, '0.85ch');
+      if (pt1) setSegmentedText(pt1, txt1, '0.92ch');
+      if (pt2) setSegmentedText(pt2, txt2, '0.92ch');
     } else {
       if (tennisPointBoxA) tennisPointBoxA.style.display = 'none';
       if (tennisPointBoxB) tennisPointBoxB.style.display = 'none';
@@ -311,7 +311,7 @@ function updateScoreboardUI(data) {
     if (container) container.classList.remove('mode-set');
     // Normal Cabor (akumulasi)
     sbTimer.style.display = 'block';
-    setSegmentedText(sbTimer, data.timerText, '0.85ch');
+    setSegmentedText(sbTimer, data.timerText, '0.95ch');
     
     if (setBottomPanel) setBottomPanel.style.display = 'none';
     if (setsWonBoxA) setsWonBoxA.style.display = 'none';
@@ -344,7 +344,7 @@ function updateScoreboardUI(data) {
     if (foulBoxB) foulBoxB.style.display = 'inline-flex';
     
     if (foulValA) {
-        setSegmentedText(foulValA, data.foulA, '0.85ch');
+        setSegmentedText(foulValA, data.foulA, '0.92ch');
         if (data.foulA >= 5) {
             foulBoxA.style.borderColor = '#ff3838';
             foulBoxA.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 15px rgba(255, 56, 56, 0.4)';
@@ -356,7 +356,7 @@ function updateScoreboardUI(data) {
         }
     }
     if (foulValB) {
-        setSegmentedText(foulValB, data.foulB, '0.85ch');
+        setSegmentedText(foulValB, data.foulB, '0.92ch');
         if (data.foulB >= 5) {
             foulBoxB.style.borderColor = '#ff3838';
             foulBoxB.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 15px rgba(255, 56, 56, 0.4)';
@@ -377,7 +377,7 @@ function updateScoreboardUI(data) {
   if (data.showShotClock) {
     if (shotClockBox) shotClockBox.style.display = 'block';
     if (sbShotClock) {
-      setSegmentedText(sbShotClock, data.shotClock, '0.85ch');
+      setSegmentedText(sbShotClock, data.shotClock, '0.92ch');
       if (data.shotClock <= 5) {
         sbShotClock.style.color = '#ff3838';
         if (shotClockBox) {
