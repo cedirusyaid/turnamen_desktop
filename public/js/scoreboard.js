@@ -25,12 +25,6 @@ function setSegmentedText(element, text, charWidth = '0.85ch') {
     } else {
       container.style.width = charWidth;
       
-      // Ghost background segment "8" (samar di belakang)
-      const bgSpan = document.createElement('span');
-      bgSpan.textContent = '8';
-      bgSpan.className = 'digit-bg';
-      container.appendChild(bgSpan);
-      
       // Active segment (nilai asli)
       const valSpan = document.createElement('span');
       valSpan.textContent = char;
