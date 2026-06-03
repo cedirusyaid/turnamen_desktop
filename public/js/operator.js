@@ -21,6 +21,7 @@ let timerInterval = null;
 let syncQueue = [];
 let isOnline = false;
 let isBypassStarter = false;
+let isPollingReload = false;
 
 // Shot Clock State
 let shotClockSeconds = 24;
@@ -720,7 +721,7 @@ function initMatchPanel() {
   // Set Timer dari data server
   timerSeconds = parseInt(matchData.timer_seconds_elapsed || 0);
   updateTimerDisplay();
-  if (matchData.is_timer_running == 1) {
+  if (matchData.is_timer_running == 1 && !isPollingReload) {
     btnTimerStart.click();
   }
 
@@ -2466,6 +2467,97 @@ function getLocalBackupsList() {
   }
 }
 
+// Auto Polling dari Server Web
+let autoPollingInterval = null;
+
+function startAutoPolling() {
+  if (autoPollingInterval) clearInterval(autoPollingInterval);
+  
+  autoPollingInterval = setInterval(async () => {
+    // 1. Cek status: online, timer tidak berjalan, tidak ada timeout, dan antrean lokal kosong
+    const timerRunning = !!timerInterval;
+    const hasSyncQueue = syncQueue && syncQueue.some(item => item.status === 'pending' || item.status === 'processing');
+    const isTimeoutActive = !!timeoutEndTime;
+
+    if (!isOnline || timerRunning || hasSyncQueue || isTimeoutActive) {
+      return; 
+    }
+
+    if (!matchData || !matchData.id_jadwal || !matchData.serverUrl || !matchData.token || matchData.token === 'offline_mode') {
+      return; 
+    }
+
+    try {
+      const responseMatch = await fetch(`${matchData.serverUrl}/api/desktop/download-match/${matchData.id_jadwal}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${matchData.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (responseMatch.status === 200) {
+        const fullResult = await responseMatch.json();
+        if (fullResult.status && fullResult.data) {
+          const serverMatch = fullResult.data;
+          
+          // Cek perbedaan data krusial
+          const diffScore = parseInt(serverMatch.skor_a || 0) !== parseInt(matchData.skor_a || 0) ||
+                            parseInt(serverMatch.skor_b || 0) !== parseInt(matchData.skor_b || 0);
+          const diffFouls = parseInt(serverMatch.foul_a || 0) !== parseInt(matchData.foul_a || 0) ||
+                            parseInt(serverMatch.foul_b || 0) !== parseInt(matchData.foul_b || 0);
+          const diffPeriod = (serverMatch.current_period || '') !== (matchData.current_period || '');
+          const diffTimer = parseInt(serverMatch.timer_seconds_elapsed || 0) !== parseInt(matchData.timer_seconds_elapsed || 0);
+          const diffStatus = (serverMatch.status_pertandingan || '') !== (matchData.status_pertandingan || '');
+          
+          // Cek perbedaan jumlah log events
+          const serverEventsCount = (serverMatch.events || []).length;
+          const localEventsCount = (matchData.events || []).length;
+          const diffEvents = serverEventsCount !== localEventsCount;
+
+          if (diffScore || diffFouls || diffPeriod || diffTimer || diffStatus || diffEvents) {
+            console.log("[Auto Polling] Terdeteksi perubahan skor/log dari server web. Memperbarui state lokal...");
+            
+            const token = matchData.token;
+            const serverUrl = matchData.serverUrl;
+            
+            // Simpan state
+            matchData = serverMatch;
+            matchData.token = token;
+            matchData.serverUrl = serverUrl;
+            
+            currentScoreA = parseInt(matchData.skor_a || 0);
+            currentScoreB = parseInt(matchData.skor_b || 0);
+
+            localStorage.setItem('active_match_data', JSON.stringify(matchData));
+
+            // Reload UI tanpa memicu start timer otomatis
+            isPollingReload = true;
+            initMatchPanel();
+            isPollingReload = false;
+            
+            if (typeof renderRoster === 'function') renderRoster();
+            if (typeof renderTimeline === 'function') renderTimeline();
+
+            if (selectPeriod) {
+              selectPeriod.value = matchData.current_period || selectPeriod.options[0]?.value;
+            }
+
+            // Posisikan timer seconds
+            timerSeconds = parseInt(matchData.timer_seconds_elapsed || 0);
+            updateTimerDisplay();
+
+            // Broadcast ke Scoreboard Videotron
+            broadcastState();
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[Auto Polling] Koneksi internet bermasalah, polling diabaikan.");
+    }
+  }, 5000);
+}
+
 // AUTO RESTORE SESSION ON LOAD
 window.addEventListener('load', () => {
   // Handle Capacitor (Android/iOS Tablet) Native Integrations
@@ -2890,4 +2982,7 @@ window.addEventListener('load', () => {
 
     return null;
   }
+
+  // Mulai auto polling dari server
+  startAutoPolling();
 });
