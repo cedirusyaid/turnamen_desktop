@@ -937,10 +937,6 @@ if (scToggleDisplayBtn) scToggleDisplayBtn.addEventListener('click', () => {
 btnTimerStart.addEventListener('click', () => {
   if (timerInterval) return;
   
-  if (showShotClock && shotClockActivated) {
-    startShotClock();
-  }
-  
   // Hentikan timeout jika sedang berjalan saat timer dimulai
   if (timeoutEndTime) {
     stopTimeout();
@@ -985,6 +981,11 @@ btnTimerStart.addEventListener('click', () => {
       
       playBuzzer();
       
+      // Jika game clock utama selesai, pause shot clock
+      if (showShotClock && shotClockActivated) {
+        pauseShotClock();
+      }
+
       if (matchData && matchData.id_jadwal) {
         queueSyncAction('/api/desktop/update-timer', { 
           id_jadwal: matchData.id_jadwal, 
@@ -1014,6 +1015,11 @@ btnTimerStart.addEventListener('click', () => {
       timerPayload.waktu_pelaksanaan = waktuPelaksanaanUpdate;
     }
     queueSyncAction('/api/desktop/update-timer', timerPayload);
+  }
+
+  // Jalankan shot clock setelah timerInterval didefinisikan agar proteksi game clock terlewati dan shot clock melanjutkan waktu sisa
+  if (showShotClock && shotClockActivated) {
+    startShotClock();
   }
 });
 
