@@ -33,6 +33,14 @@ let shotClockActivated = false;
 function startShotClock() {
   shotClockActivated = true;
   updateShotClockToggleBtnDisplay();
+  
+  // Proteksi: Shot clock HANYA boleh berjalan (berkurang) jika Game Clock utama sedang jalan (timerInterval ada)
+  if (!timerInterval) {
+    updateShotClockDisplay();
+    broadcastState();
+    return;
+  }
+  
   if (shotClockInterval) return;
   const btnStart = document.getElementById('btn-shotclock-start');
   const btnPause = document.getElementById('btn-shotclock-pause');
@@ -70,6 +78,14 @@ function resetShotClock(seconds = 24, activate = true) {
   }
   updateShotClockToggleBtnDisplay();
   updateShotClockDisplay();
+  
+  if (shotClockActivated) {
+    if (timerInterval) {
+      startShotClock();
+    } else {
+      pauseShotClock();
+    }
+  }
   broadcastState();
 }
 
@@ -906,13 +922,22 @@ if (scMinusBtn) scMinusBtn.addEventListener('click', () => adjustShotClock(-1));
 if (scToggleDisplayBtn) scToggleDisplayBtn.addEventListener('click', () => {
   shotClockActivated = !shotClockActivated;
   updateShotClockToggleBtnDisplay();
+  if (shotClockActivated) {
+    if (timerInterval) {
+      startShotClock();
+    } else {
+      updateShotClockDisplay();
+    }
+  } else {
+    pauseShotClock();
+  }
   broadcastState();
 });
 
 btnTimerStart.addEventListener('click', () => {
   if (timerInterval) return;
   
-  if (showShotClock) {
+  if (showShotClock && shotClockActivated) {
     startShotClock();
   }
   
@@ -1045,7 +1070,7 @@ btnTimerStop.addEventListener('click', () => {
   clearInterval(timerInterval);
   timerInterval = null;
 
-  if (showShotClock) {
+  if (showShotClock && shotClockActivated) {
     pauseShotClock();
   }
 
