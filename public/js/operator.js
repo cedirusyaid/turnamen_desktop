@@ -166,6 +166,7 @@ const syncCountBadge = document.getElementById('sync-count');
 const btnOpenVideotron = document.getElementById('btn-open-videotron');
 const btnSyncNow = document.getElementById('btn-sync-now');
 const btnResetMatch = document.getElementById('btn-reset-match');
+const btnExitLocked = document.getElementById('btn-exit-locked');
 
 const caborBadge = document.getElementById('cabor-badge');
 const faseBadge = document.getElementById('fase-badge');
@@ -1256,9 +1257,11 @@ function broadcastState() {
 
 function lockUI() {
   if (matchData && matchData.status_pertandingan === 'selesai') {
-    // Disable all interactive elements
+    // Disable all interactive elements except exit and sync buttons
     document.querySelectorAll('button, input, select, textarea').forEach(el => {
-      el.disabled = true;
+      if (el.id !== 'btn-reset-match' && el.id !== 'btn-exit-locked' && el.id !== 'btn-sync-reload') {
+        el.disabled = true;
+      }
     });
     // Show overlay dimming effect if exists
     const overlay = document.getElementById('ui-lock-overlay');
@@ -2383,9 +2386,8 @@ if (selectPeriod) {
   });
 }
 
-// RESET & KELUAR
-btnResetMatch.addEventListener('click', () => {
-  if (confirm("Apakah Anda yakin ingin meriset sesi pertandingan ini? Data yang belum disinkronkan akan hilang!")) {
+function exitMatch(bypassConfirm = false) {
+  if (bypassConfirm || confirm("Apakah Anda yakin ingin meriset sesi pertandingan ini? Data yang belum disinkronkan akan hilang!")) {
     if (timerInterval) {
       clearInterval(timerInterval);
     }
@@ -2407,7 +2409,18 @@ btnResetMatch.addEventListener('click', () => {
       btnDownload.click();
     }
   }
+}
+
+// RESET & KELUAR
+btnResetMatch.addEventListener('click', () => {
+  exitMatch(false);
 });
+
+if (btnExitLocked) {
+  btnExitLocked.addEventListener('click', () => {
+    exitMatch(true); // Bypass confirm
+  });
+}
 
 // UTILITIES
 function generateUUID() {
