@@ -1487,7 +1487,8 @@ window.startTimeout = function() {
     action: 'timeout_start',
     duration: duration,
     timeout_by: team === 'both' ? 'both' : (team === 'A' ? matchData.id_team_a : matchData.id_team_b),
-    id_jadwal: matchData.id_jadwal
+    id_jadwal: matchData.id_jadwal,
+    seconds: timerSeconds
   };
 
   // Optimistic update locally
@@ -1531,7 +1532,11 @@ window.stopTimeout = function() {
   broadcastState();
 
   if (matchData && matchData.id_jadwal) {
-    queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, action: 'timeout_stop' });
+    queueSyncAction('/api/desktop/update-timer', { 
+      id_jadwal: matchData.id_jadwal, 
+      action: 'timeout_stop',
+      seconds: timerSeconds
+    });
   }
 };
 
