@@ -1,117 +1,74 @@
-# Panduan Menjalankan & Build Aplikasi Desktop Turnamen
+# 🖥️ Turnamen Match Scorer (Desktop Edition)
 
-Aplikasi desktop ini dikembangkan berbasis **Electron** sehingga dapat dijalankan dan dikompilasi (packaging) ke berbagai OS (Linux, Windows, macOS).
-
----
-
-## 1. Kebutuhan Sistem (Prerequisites)
-Sebelum memulai, pastikan perangkat Anda sudah terinstal:
-*   **Node.js** (Rekomendasi versi LTS 18 atau 20)
-*   **npm** (Bawaan dari Node.js)
+Aplikasi Desktop berbasis **Electron** untuk pembaruan skor pertandingan secara *real-time* dan pengelolaan papan skor Videotron. Aplikasi ini merupakan bagian dari ekosistem **turnamen.info**.
 
 ---
 
-## 2. Cara Menjalankan untuk Pengembangan (Development Mode)
-Untuk menguji coba aplikasi secara langsung di PC lokal:
+## 🔗 Informasi Repository
+Aplikasi ini dikembangkan di dalam monorepo utama, namun dipublikasikan secara mandiri ke:
+*   **Source:** `git@github.com:cedirusyaid/turnamen_desktop.git`
+*   **Main Project:** [turnamen.info](https://github.com/cedirusyaid/turnamen)
 
-1.  Buka terminal/command prompt.
-2.  Masuk ke direktori aplikasi desktop:
+---
+
+## 🚀 Fitur Utama
+*   **Live Scoring:** Update skor babak demi babak dengan sinkronisasi ke server pusat.
+*   **Videotron Support:** Dual-window display khusus untuk layar besar/videotron stadion.
+*   **Offline Mode:** Dukungan penuh untuk tetap mencatat skor saat koneksi internet terputus (Local Backup).
+*   **QR Auth:** Login operator praktis menggunakan pemindaian QR Code dari dashboard admin.
+
+---
+
+## 🛠️ Persyaratan Sistem
+*   **Node.js** (LTS v18 atau v20)
+*   **npm**
+
+---
+
+## 👨‍💻 Pengembangan (Development Mode)
+
+1.  Masuk ke direktori:
     ```bash
     cd desktop-app
     ```
-3.  Instal seluruh library dependensi (termasuk Electron):
+2.  Instal dependensi:
     ```bash
     npm install
     ```
-4.  Jalankan aplikasi desktop:
+3.  Jalankan aplikasi:
     ```bash
     npm start
     ```
-    *Aplikasi desktop akan langsung terbuka menampilkan setup modal.*
 
 ---
 
-## 3. Cara Build ke Aplikasi Mandiri (Standalone Executable)
+## 📦 Membangun Aplikasi (Build/Dist)
 
-Untuk mengemas (package) aplikasi menjadi file instalasi siap pakai tanpa memerlukan Node.js terinstal di PC klien, kita akan menggunakan tool populer **`electron-builder`**.
+Kami menggunakan `electron-builder` untuk mengemas aplikasi menjadi file instalasi mandiri.
 
-### Langkah A: Tambah Dependensi Build
-Instal library `electron-builder` secara global atau lokal di project:
-```bash
-cd desktop-app
-npm install electron-builder --save-dev
-```
+### Perintah Build sesuai OS:
 
-### Langkah B: Update Konfigurasi `package.json`
-Tambahkan konfigurasi build di file `desktop-app/package.json`. File `package.json` Anda akan terlihat seperti ini:
-
-```json
-{
-  "name": "turnamen-match-updater",
-  "version": "1.0.0",
-  "description": "Desktop Match Scorer & Videotron Scoreboard",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder"
-  },
-  "build": {
-    "appId": "info.turnamen.scorer",
-    "productName": "TurnamenScorer",
-    "files": [
-      "main.js",
-      "public/**/*"
-    ],
-    "linux": {
-      "target": ["AppImage", "deb"],
-      "category": "Sports"
-    },
-    "win": {
-      "target": ["nsis"]
-    },
-    "mac": {
-      "target": ["dmg"]
-    }
-  },
-  "devDependencies": {
-    "electron": "^30.0.0",
-    "electron-builder": "^24.13.3"
-  }
-}
-```
-
-### Langkah C: Eksekusi Perintah Build
-
-Jalankan perintah build sesuai dengan sistem operasi target:
-
-#### 🐧 Untuk Linux (Menghasilkan `.AppImage` dan `.deb`):
-```bash
-npm run dist -- --linux
-```
-*   File output `.deb` (Debian/Ubuntu Installer) dan `.AppImage` (Portable Linux app) akan tersimpan di dalam folder `desktop-app/dist/`.
-*   Untuk menginstalnya di Debian/Ubuntu, cukup jalankan:
+*   **Linux (.AppImage & .deb):**
     ```bash
-    sudo dpkg -i dist/TurnamenScorer_1.0.0_amd64.deb
+    npm run dist -- --linux
+    ```
+*   **Windows (.exe):**
+    ```bash
+    npm run dist -- --win
+    ```
+*   **macOS (.dmg):**
+    ```bash
+    npm run dist -- --mac
     ```
 
-#### 🪟 Untuk Windows (Menghasilkan `.exe` installer):
-Jika Anda melakukan build dari sistem operasi Windows:
-```bash
-npm run dist -- --win
-```
-*   Akan menghasilkan Windows Installer `.exe` di dalam folder `desktop-app/dist/`.
-
-#### 🍏 Untuk macOS (Menghasilkan `.dmg`):
-Jika Anda melakukan build dari perangkat macOS:
-```bash
-npm run dist -- --mac
-```
-*   Akan menghasilkan file `.dmg` di folder `desktop-app/dist/`.
+File hasil build akan tersedia di folder `desktop-app/dist/`.
 
 ---
 
-## 4. Cara PWA / Non-Electron (Alternatif Tanpa Install)
-Jika Anda tidak ingin mengompilasi sebagai aplikasi desktop, Anda dapat langsung menggunakannya sebagai **web static offline**:
-1.  Buka folder `desktop-app/public/`.
-2.  Buka file `operator.html` di web browser apa saja.
-3.  Simpan sebagai bookmark atau instal via menu browser (*Install / Add to Home Screen*).
+## 🌐 Alternatif PWA / Web Static
+Jika tidak ingin menggunakan Electron, folder `public/` berisi aset web standar yang bisa dijalankan langsung:
+1.  Buka `desktop-app/public/operator.html` di browser.
+2.  Gunakan fitur browser *Install App* untuk menjadikannya PWA.
+
+---
+&copy; 2026 **turnamen.info** - *Precision in Every Second*
