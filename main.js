@@ -77,6 +77,13 @@ ipcMain.on('close-scoreboard', () => {
   }
 });
 
+ipcMain.on('toggle-fullscreen-scoreboard', () => {
+  if (scoreboardWindow) {
+    const isFullscreen = scoreboardWindow.isFullScreen();
+    scoreboardWindow.setFullScreen(!isFullscreen);
+  }
+});
+
 ipcMain.on('start-google-login', (event, serverUrl) => {
   const loginUrl = `${serverUrl}/api/desktop/google-login`;
   

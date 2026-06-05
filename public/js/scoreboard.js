@@ -129,15 +129,29 @@ document.addEventListener('dblclick', () => {
   }
 });
 
-// Toggle fullscreen via F11
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F11') {
     e.preventDefault();
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
+    try {
+      const electron = window.require ? window.require('electron') : null;
+      if (electron && electron.ipcRenderer) {
+        electron.ipcRenderer.send('toggle-fullscreen-scoreboard');
+      } else {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          }
+        }
+      }
+    } catch (err) {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
       }
     }
   }
