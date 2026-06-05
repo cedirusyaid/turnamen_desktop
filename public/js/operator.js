@@ -655,9 +655,11 @@ function initMatchPanel() {
 
   if (isBasket) {
     showShotClock = true;
-    shotClockActivated = false;
+    if (!isPollingReload) {
+      shotClockActivated = false;
+      shotClockSeconds = 24;
+    }
     updateShotClockToggleBtnDisplay();
-    shotClockSeconds = 24;
     if (shotClockBox) shotClockBox.style.display = 'block';
     const disp = document.getElementById('operator-shot-clock-display');
     if (disp) disp.textContent = shotClockSeconds;
