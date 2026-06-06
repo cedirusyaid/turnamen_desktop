@@ -807,7 +807,8 @@ function renderRoster() {
 
     players.forEach(p => {
       let actionButtons = '';
-      const displayName = p.nama_punggung || p.nama;
+      const displayName = p.nama_punggung || p.nama || '';
+      const displayNameEscaped = displayName.replace(/'/g, "\\'");
 
       if (p.status === 'active') {
         if (matchData.cabor_events && matchData.cabor_events.length > 0) {
@@ -823,7 +824,7 @@ function renderRoster() {
           });
           // Tambahkan tombol untuk log event lainnya
           actionButtons += `
-            <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
+            <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayNameEscaped}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
           `;
         } else {
           if (isBasket) {
@@ -831,19 +832,19 @@ function renderRoster() {
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_1', 1)" title="Free Throw (+1)">1P</button>
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_2', 2)" title="2 Point (+2)">2P</button>
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_3', 3)" title="3 Point (+3)">3P</button>
-              <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
+              <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayNameEscaped}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
             `;
           } else {
             actionButtons = `
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'gol', 1)" title="Gol">⚽</button>
-              <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
+              <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayNameEscaped}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
             `;
           }
         }
       }
 
       const subBtn = isBypassStarter ? '' : (p.status === 'active' 
-        ? `<button class="btn-player-sub" onclick="showSubstitutionDropdown(event, '${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '${p.nomor_punggung || '-'}')" title="Substitusi Pemain">⬇️ Out</button>`
+        ? `<button class="btn-player-sub" onclick="showSubstitutionDropdown(event, '${team}', ${p.id_personil}, '${displayNameEscaped}', '${p.nomor_punggung || '-'}')" title="Substitusi Pemain">⬇️ Out</button>`
         : `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'active')" title="Masukkan ke Lapangan">⬆️ In</button>`);
 
       const playerRowHtml = `
