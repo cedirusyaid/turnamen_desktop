@@ -393,11 +393,36 @@ button {
 }
 
 .roster-section h4 {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  color: #d1ccc0;
-  margin-bottom: 0.5rem;
+  color: #fff;
+  margin-bottom: 0.8rem;
   letter-spacing: 0.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+}
+
+.player-count-badge {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-left: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-count-badge.active {
+  color: #00d2ff;
+  border-color: rgba(0, 210, 255, 0.25);
+  background: rgba(0, 210, 255, 0.08);
+}
+
+.player-count-badge.bench {
+  color: #f6b93b;
+  border-color: rgba(246, 185, 59, 0.25);
+  background: rgba(246, 185, 59, 0.08);
 }
 
 .roster-list {
@@ -450,36 +475,52 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: 60%;
+  max-width: 45%;
 }
 
 .player-number {
   font-weight: 700;
   color: #82ccdd;
-  min-width: 20px;
+  min-width: 24px;
+  font-size: 0.95rem;
 }
 
 .player-name {
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 0.95rem;
 }
 
 .player-actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .btn-player-action {
-  padding: 3px 6px;
-  font-size: 0.75rem;
+  padding: 6px 12px;
+  font-size: 0.9rem;
   border: none;
-  border-radius: 5px;
-  font-weight: 700;
+  border-radius: 6px;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-width: 38px;
+  text-align: center;
+}
+
+.btn-player-action.lainnya {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.btn-player-action.lainnya:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .btn-player-action.gol {
@@ -555,9 +596,9 @@ button {
   background: transparent;
   color: #d1ccc0;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 3px 6px;
-  border-radius: 5px;
-  font-size: 0.75rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -654,4 +695,83 @@ button {
   text-align: center;
   padding: 1.5rem 0;
   font-size: 0.9rem;
+}
+
+/* SUB DROPDOWN MENU FOR SUBS-OUT */
+.sub-dropdown-container {
+  position: absolute;
+  z-index: 2000;
+  background: #121425;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  width: 240px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.sub-dropdown-header {
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  color: #a4b0be;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.sub-dropdown-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sub-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.sub-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sub-item-number {
+  color: #82ccdd;
+  font-weight: 800;
+  min-width: 25px;
+}
+
+.sub-item-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.sub-dropdown-item.out-only {
+  background: rgba(255, 71, 87, 0.05);
+  border: 1px dashed rgba(255, 71, 87, 0.2);
+  margin-top: 4px;
+}
+
+.sub-dropdown-item.out-only:hover {
+  background: rgba(255, 71, 87, 0.2);
+  border-color: rgba(255, 71, 87, 0.4);
 }

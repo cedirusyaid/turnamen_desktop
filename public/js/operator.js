@@ -811,55 +811,39 @@ function renderRoster() {
 
       if (p.status === 'active') {
         if (matchData.cabor_events && matchData.cabor_events.length > 0) {
+          // Tombol Poin (bobot_skor > 0 dan bukan own goal)
           matchData.cabor_events.forEach(ev => {
-            let btnClass = 'gol';
             const code = ev.kode_event.toLowerCase();
-            if (code.includes('kuning')) {
-              btnClass = 'kuning';
-            } else if (code.includes('merah') || code.includes('foul') || code.includes('error')) {
-              btnClass = 'merah';
-            } else if (code.includes('assist')) {
-              btnClass = 'assist';
-            } else if (code.includes('rebound')) {
-              btnClass = 'rebound';
-            } else if (code.includes('block')) {
-              btnClass = 'block';
-            } else if (code.includes('own_goal') || code.includes('bd')) {
-              btnClass = 'bd';
-            } else if (code.includes('smash') || code.includes('netting')) {
-              btnClass = 'assist';
+            const isPoint = ev.bobot_skor > 0 && !code.includes('own_goal') && !code.includes('bunuh');
+            if (isPoint) {
+              actionButtons += `
+                <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, '${ev.kode_event.toLowerCase()}', ${ev.bobot_skor})" title="${ev.nama_event}">${ev.ikon}</button>
+              `;
             }
-            actionButtons += `
-              <button class="btn-player-action ${btnClass}" onclick="recordPlayerEvent('${team}', ${p.id_personil}, '${ev.kode_event.toLowerCase()}', ${ev.bobot_skor})" title="${ev.nama_event}">${ev.ikon}</button>
-            `;
           });
+          // Tambahkan tombol untuk log event lainnya
+          actionButtons += `
+            <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
+          `;
         } else {
           if (isBasket) {
             actionButtons = `
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_1', 1)" title="Free Throw (+1)">1P</button>
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_2', 2)" title="2 Point (+2)">2P</button>
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_3', 3)" title="3 Point (+3)">3P</button>
-              <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'foul', 0)" title="Foul">F</button>
-              <button class="btn-player-action assist" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'assist', 0)" title="Assist">AST</button>
-              <button class="btn-player-action rebound" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'rebound', 0)" title="Rebound">REB</button>
-              <button class="btn-player-action block" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'block', 0)" title="Block">BLK</button>
-              <button class="btn-player-action bd" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'steal', 0)" title="Steal">STL</button>
-              <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'turnover', 0)" title="Turnover">TO</button>
+              <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
             `;
           } else {
             actionButtons = `
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'gol', 1)" title="Gol">⚽</button>
-              <button class="btn-player-action kuning" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_kuning', 0)" title="Kartu Kuning">🟨</button>
-              <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'kartu_merah', 0)" title="Kartu Merah">🟥</button>
-              <button class="btn-player-action assist" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'assist', 0)" title="Assist">👟</button>
-              <button class="btn-player-action bd" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'own_goal', 1)" title="Gol Bunuh Diri">❌</button>
+              <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
             `;
           }
         }
       }
 
       const subBtn = isBypassStarter ? '' : (p.status === 'active' 
-        ? `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'bench')" title="Tarik ke Cadangan">⬇️ Out</button>`
+        ? `<button class="btn-player-sub" onclick="showSubstitutionDropdown(event, '${team}', ${p.id_personil}, '${displayName.replace(/'/g, "\\'")}', '${p.nomor_punggung || '-'}')" title="Substitusi Pemain">⬇️ Out</button>`
         : `<button class="btn-player-sub" onclick="togglePlayerStatus('${team}', ${p.id_personil}, 'active')" title="Masukkan ke Lapangan">⬆️ In</button>`);
 
       const playerRowHtml = `
@@ -885,8 +869,280 @@ function renderRoster() {
     if (activeCount === 0) {
       activeList.innerHTML = '<div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>';
     }
+
+    const activeHeader = document.getElementById(`active-header-${team.toLowerCase()}`);
+    const benchHeader = document.getElementById(`bench-header-${team.toLowerCase()}`);
+    
+    if (activeHeader) {
+      activeHeader.innerHTML = `🏃 Pemain di Lapangan <span class="player-count-badge active">${activeCount}</span>`;
+    }
+    if (benchHeader) {
+      const benchCount = players.filter(p => p.status !== 'active').length;
+      benchHeader.innerHTML = `🛋️ Bangku Cadangan <span class="player-count-badge bench">${benchCount}</span>`;
+    }
   });
 }
+
+window.showPlayerMoreEvents = function(team, personilId, playerName, playerNumber) {
+  if (!matchData) return;
+  const isBasket = matchData.cabor_nama.toLowerCase().includes('basket') || matchData.id_cabor == 3;
+  const teamName = team === 'A' ? matchData.team_a_nama : matchData.team_b_nama;
+  
+  document.getElementById('player-modal-team').value = team;
+  document.getElementById('player-modal-personil-id').value = personilId;
+  document.getElementById('player-modal-info').textContent = `${playerNumber} ${playerName} (${teamName})`;
+  
+  const container = document.getElementById('player-modal-events-list');
+  container.innerHTML = '';
+  
+  if (matchData.cabor_events && matchData.cabor_events.length > 0) {
+    matchData.cabor_events.forEach(ev => {
+      const code = ev.kode_event.toLowerCase();
+      // Filter out points (bobot_skor > 0, EXCEPT own_goal / gol_bunuh_diri which are non-points for own team)
+      const isPoint = ev.bobot_skor > 0 && !code.includes('own_goal') && !code.includes('bunuh');
+      
+      if (!isPoint) {
+        let btnClass = 'gol';
+        if (code.includes('kuning')) {
+          btnClass = 'kuning';
+        } else if (code.includes('merah') || code.includes('foul') || code.includes('error') || code.includes('turnover')) {
+          btnClass = 'merah';
+        } else if (code.includes('assist')) {
+          btnClass = 'assist';
+        } else if (code.includes('rebound')) {
+          btnClass = 'rebound';
+        } else if (code.includes('block')) {
+          btnClass = 'block';
+        } else if (code.includes('own_goal') || code.includes('bd') || code.includes('bunuh')) {
+          btnClass = 'bd';
+        } else if (code.includes('steal')) {
+          btnClass = 'bd';
+        }
+        
+        const btn = document.createElement('button');
+        btn.className = `btn-player-action ${btnClass}`;
+        btn.style.padding = '12px';
+        btn.style.fontSize = '0.95rem';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.gap = '8px';
+        btn.style.borderRadius = '8px';
+        btn.style.fontWeight = 'bold';
+        btn.innerHTML = `${ev.ikon} <span>${ev.nama_event}</span>`;
+        btn.onclick = () => handlePlayerModalEvent(code, ev.bobot_skor);
+        container.appendChild(btn);
+      }
+    });
+  } else {
+    // Fallback events
+    if (isBasket) {
+      const basketEvents = [
+        { code: 'foul', label: 'Foul', icon: 'F', weight: 0, class: 'merah' },
+        { code: 'assist', label: 'Assist', icon: 'AST', weight: 0, class: 'assist' },
+        { code: 'rebound', label: 'Rebound', icon: 'REB', weight: 0, class: 'rebound' },
+        { code: 'block', label: 'Block', icon: 'BLK', weight: 0, class: 'block' },
+        { code: 'steal', label: 'Steal', icon: 'STL', weight: 0, class: 'bd' },
+        { code: 'turnover', label: 'Turnover', icon: 'TO', weight: 0, class: 'merah' }
+      ];
+      
+      basketEvents.forEach(ev => {
+        const btn = document.createElement('button');
+        btn.className = `btn-player-action ${ev.class}`;
+        btn.style.padding = '12px';
+        btn.style.fontSize = '0.95rem';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.gap = '8px';
+        btn.style.borderRadius = '8px';
+        btn.style.fontWeight = 'bold';
+        btn.innerHTML = `<span>${ev.icon}</span> <span>${ev.label}</span>`;
+        btn.onclick = () => handlePlayerModalEvent(ev.code, ev.weight);
+        container.appendChild(btn);
+      });
+    } else {
+      const normalEvents = [
+        { code: 'kartu_kuning', label: 'Kartu Kuning', icon: '🟨', weight: 0, class: 'kuning' },
+        { code: 'kartu_merah', label: 'Kartu Merah', icon: '🟥', weight: 0, class: 'merah' },
+        { code: 'assist', label: 'Assist', icon: '👟', weight: 0, class: 'assist' },
+        { code: 'own_goal', label: 'Gol Bunuh Diri', icon: '❌', weight: 1, class: 'bd' }
+      ];
+      
+      normalEvents.forEach(ev => {
+        const btn = document.createElement('button');
+        btn.className = `btn-player-action ${ev.class}`;
+        btn.style.padding = '12px';
+        btn.style.fontSize = '0.95rem';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.gap = '8px';
+        btn.style.borderRadius = '8px';
+        btn.style.fontWeight = 'bold';
+        btn.innerHTML = `<span>${ev.icon}</span> <span>${ev.label}</span>`;
+        btn.onclick = () => handlePlayerModalEvent(ev.code, ev.weight);
+        container.appendChild(btn);
+      });
+    }
+  }
+  
+  document.getElementById('player-events-modal').style.display = 'flex';
+};
+
+window.handlePlayerModalEvent = function(eventType, weight) {
+  const team = document.getElementById('player-modal-team').value;
+  const personilId = document.getElementById('player-modal-personil-id').value;
+  
+  recordPlayerEvent(team, personilId, eventType, weight);
+  closePlayerEventsModal();
+};
+
+window.closePlayerEventsModal = function() {
+  document.getElementById('player-events-modal').style.display = 'none';
+};
+
+window.showSubstitutionDropdown = function(event, team, outPlayerId, outPlayerName, outPlayerNumber) {
+  event.stopPropagation();
+  
+  if (!matchData) return;
+  const players = team === 'A' ? matchData.players_a : matchData.players_b;
+  const benchPlayers = players.filter(p => p.status === 'bench');
+  
+  // Jika tidak ada pemain cadangan, langsung tarik keluar saja
+  if (benchPlayers.length === 0) {
+    togglePlayerStatus(team, outPlayerId, 'bench');
+    return;
+  }
+  
+  // Hapus dropdown substitusi lain jika ada yang terbuka
+  const existingDropdown = document.getElementById('sub-dropdown-menu');
+  if (existingDropdown) {
+    existingDropdown.remove();
+  }
+  
+  // Buat element dropdown melayang
+  const dropdown = document.createElement('div');
+  dropdown.id = 'sub-dropdown-menu';
+  dropdown.className = 'sub-dropdown-container';
+  
+  // Header dropdown
+  let html = `
+    <div class="sub-dropdown-header">
+      Ganti ${outPlayerNumber} ${outPlayerName} dengan:
+    </div>
+    <div class="sub-dropdown-body">
+  `;
+  
+  // Opsi pemain cadangan
+  benchPlayers.forEach(p => {
+    const displayName = p.nama_punggung || p.nama;
+    html += `
+      <button class="sub-dropdown-item" onclick="substitutePlayer('${team}', ${outPlayerId}, ${p.id_personil})">
+        <span class="sub-item-number">#${p.nomor_punggung || '-'}</span>
+        <span class="sub-item-name">${displayName}</span>
+      </button>
+    `;
+  });
+  
+  // Opsi Tarik Keluar saja (tanpa pengganti)
+  html += `
+    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin: 6px 0;"></div>
+    <button class="sub-dropdown-item out-only" onclick="togglePlayerStatus('${team}', ${outPlayerId}, 'bench'); document.getElementById('sub-dropdown-menu').remove();">
+      <span class="sub-item-icon">⬇️</span>
+      <span class="sub-item-name" style="color: #ff4757; font-weight: bold;">Tarik Keluar Saja</span>
+    </button>
+  </div>
+  `;
+  
+  dropdown.innerHTML = html;
+  document.body.appendChild(dropdown);
+  
+  // Posisikan dropdown di dekat tombol yang diklik
+  const rect = event.currentTarget.getBoundingClientRect();
+  const dropdownWidth = 240; 
+  
+  let left = rect.right - dropdownWidth;
+  if (left < 10) left = 10;
+  
+  let top = rect.bottom + window.scrollY + 6;
+  
+  dropdown.style.left = `${left}px`;
+  dropdown.style.top = `${top}px`;
+  dropdown.style.display = 'block';
+  
+  // Tutup dropdown saat klik di luar
+  const closeDropdownHandler = function(e) {
+    if (!dropdown.contains(e.target) && e.target !== event.target) {
+      dropdown.remove();
+      document.removeEventListener('click', closeDropdownHandler);
+    }
+  };
+  
+  setTimeout(() => {
+    document.addEventListener('click', closeDropdownHandler);
+  }, 50);
+};
+
+window.substitutePlayer = function(team, outPlayerId, inPlayerId) {
+  if (!matchData) return;
+  const players = team === 'A' ? matchData.players_a : matchData.players_b;
+  const outPlayer = players.find(p => p.id_personil == outPlayerId);
+  const inPlayer = players.find(p => p.id_personil == inPlayerId);
+  
+  if (!outPlayer || !inPlayer) return;
+
+  const teamId = team === 'A' ? matchData.id_team_a : matchData.id_team_b;
+  const elapsedMinutes = (timerSeconds > 0) ? Math.floor((timerSeconds - 1) / 60) + 1 : 0;
+
+  // 1. Keluarkan pemain lama
+  outPlayer.status = 'bench';
+  const eventPayloadOut = {
+    id_event: generateUUID(),
+    id_jadwal: matchData.id_jadwal,
+    id_personil: outPlayerId,
+    id_team: teamId,
+    jenis: 'sub_out',
+    menit: elapsedMinutes,
+    playerName: outPlayer.nama,
+    teamType: team
+  };
+
+  // 2. Masukkan pemain baru
+  inPlayer.status = 'active';
+  let inEventType = 'sub_in';
+  if (timerSeconds <= 0) {
+    inEventType = 'starter';
+  }
+  const eventPayloadIn = {
+    id_event: generateUUID(),
+    id_jadwal: matchData.id_jadwal,
+    id_personil: inPlayerId,
+    id_team: teamId,
+    jenis: inEventType,
+    menit: elapsedMinutes,
+    playerName: inPlayer.nama,
+    teamType: team
+  };
+
+  if (!matchData.events) matchData.events = [];
+  matchData.events.unshift(eventPayloadOut);
+  matchData.events.unshift(eventPayloadIn);
+  
+  localStorage.setItem('active_match_data', JSON.stringify(matchData));
+
+  // Sinkronisasi ke server
+  queueSyncAction('/api/desktop/add-event', eventPayloadOut);
+  queueSyncAction('/api/desktop/add-event', eventPayloadIn);
+  queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, seconds: timerSeconds, is_running: timerInterval ? 1 : 0 });
+
+  // Bersihkan dropdown
+  const dropdown = document.getElementById('sub-dropdown-menu');
+  if (dropdown) dropdown.remove();
+
+  renderRoster();
+  renderTimeline();
+};
 
 // 6. TIMER LOGIK
 function formatNum(num) {
@@ -2207,6 +2463,7 @@ window.editEventLocally = function(eventId) {
   const eventTeamInput = document.getElementById('edit-event-team');
   const playerSelect = document.getElementById('edit-event-player-select');
   const minuteInput = document.getElementById('edit-event-minute');
+  const typeSelect = document.getElementById('edit-event-type-select');
 
   if (!modal) return;
 
@@ -2215,8 +2472,92 @@ window.editEventLocally = function(eventId) {
   modalLabel.textContent = `Tim: ${event.teamType === 'A' ? matchData.team_a_nama : matchData.team_b_nama}`;
   minuteInput.value = event.menit;
 
+  // Populate Event Type Select
+  if (typeSelect) {
+    typeSelect.innerHTML = '';
+    
+    if (matchData.cabor_events && matchData.cabor_events.length > 0) {
+      matchData.cabor_events.forEach(ev => {
+        const opt = document.createElement('option');
+        opt.value = ev.kode_event.toUpperCase();
+        opt.textContent = ev.nama_event;
+        if (ev.kode_event.toLowerCase() === event.jenis.toLowerCase()) {
+          opt.selected = true;
+        }
+        typeSelect.appendChild(opt);
+      });
+      
+      const isSoccerFutsal = matchData.id_cabor == 1 || matchData.id_cabor == 2 || matchData.cabor_nama.toLowerCase().includes('bola') || matchData.cabor_nama.toLowerCase().includes('futsal');
+      if (isSoccerFutsal) {
+        const hasOg = matchData.cabor_events.some(ev => ev.kode_event.toLowerCase() === 'own_goal' || ev.kode_event.toLowerCase() === 'own goal' || ev.kode_event.toLowerCase() === 'bd');
+        if (!hasOg) {
+          const opt = document.createElement('option');
+          opt.value = 'OWN_GOAL';
+          opt.textContent = 'Gol Bunuh Diri (Own Goal)';
+          if (event.jenis.toLowerCase() === 'own_goal') opt.selected = true;
+          typeSelect.appendChild(opt);
+        }
+      }
+    } else {
+      const isBasket = matchData.cabor_nama.toLowerCase().includes('basket') || matchData.id_cabor == 3;
+      if (isBasket) {
+        const options = [
+          { value: 'POIN_1', text: '1 Point' },
+          { value: 'POIN_2', text: '2 Point' },
+          { value: 'POIN_3', text: '3 Point' },
+          { value: 'FOUL', text: 'Foul' },
+          { value: 'ASSIST', text: 'Assist' },
+          { value: 'REBOUND', text: 'Rebound' },
+          { value: 'BLOCK', text: 'Block' },
+          { value: 'STEAL', text: 'Steal' },
+          { value: 'TURNOVER', text: 'Turnover' }
+        ];
+        options.forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o.value;
+          opt.textContent = o.text;
+          if (o.value.toLowerCase() === event.jenis.toLowerCase()) opt.selected = true;
+          typeSelect.appendChild(opt);
+        });
+      } else {
+        const options = [
+          { value: 'GOL', text: 'Gol' },
+          { value: 'KARTU_KUNING', text: 'Kartu Kuning' },
+          { value: 'KARTU_MERAH', text: 'Kartu Merah' },
+          { value: 'OWN_GOAL', text: 'Gol Bunuh Diri (Own Goal)' },
+          { value: 'ASSIST', text: 'Assist' }
+        ];
+        options.forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o.value;
+          opt.textContent = o.text;
+          if (o.value.toLowerCase() === event.jenis.toLowerCase()) opt.selected = true;
+          typeSelect.appendChild(opt);
+        });
+      }
+    }
+    
+    // Add extra administrative options
+    const extras = [
+      { value: 'GLOBAL_WARNING', text: 'Peringatan Global' },
+      { value: 'STARTER', text: 'Starter (Menit 0)' },
+      { value: 'SUB_IN', text: 'Masuk Lapangan (Sub In)' },
+      { value: 'SUB_OUT', text: 'Keluar Lapangan (Sub Out)' },
+      { value: 'PAUSE', text: 'Pause' },
+      { value: 'RESUME', text: 'Resume' },
+      { value: 'PERIOD_CHANGE', text: 'Ganti Babak' }
+    ];
+    extras.forEach(ex => {
+      const opt = document.createElement('option');
+      opt.value = ex.value;
+      opt.textContent = ex.text;
+      if (ex.value.toLowerCase() === event.jenis.toLowerCase()) opt.selected = true;
+      typeSelect.appendChild(opt);
+    });
+  }
+
+  // Populate Player Select
   playerSelect.innerHTML = '';
-  
   const optAnon = document.createElement('option');
   optAnon.value = "0";
   optAnon.textContent = "-- Tanpa Pemain / Anonim --";
@@ -2243,6 +2584,7 @@ function saveEditedEventLocally() {
   const eventId = document.getElementById('edit-event-id').value;
   const playerSelect = document.getElementById('edit-event-player-select');
   const minuteInput = document.getElementById('edit-event-minute');
+  const typeSelect = document.getElementById('edit-event-type-select');
 
   if (!matchData || !eventId) return;
 
@@ -2252,6 +2594,7 @@ function saveEditedEventLocally() {
   const oldEvent = matchData.events[eventIndex];
   const newPlayerId = parseInt(playerSelect.value) || 0;
   const newMinute = parseInt(minuteInput.value) || 0;
+  const newType = typeSelect ? typeSelect.value.toLowerCase() : oldEvent.jenis;
 
   let newPlayerName = "";
   if (newPlayerId > 0) {
@@ -2262,6 +2605,106 @@ function saveEditedEventLocally() {
     }
   }
 
+  // HITUNG PENYESUAIAN SKOR & FOUL
+  const oldValue = oldEvent.nilai || 0;
+  const oldTargetPoin = oldEvent.target_poin || 'self';
+  
+  let newValue = 0;
+  let newTargetPoin = 'self';
+  
+  if (matchData.cabor_events && matchData.cabor_events.length > 0) {
+    const found = matchData.cabor_events.find(ev => ev.kode_event.toLowerCase() === newType.toLowerCase());
+    if (found) {
+      newValue = parseInt(found.bobot_skor) || 0;
+      newTargetPoin = found.target_poin || 'self';
+    }
+  } else {
+    newTargetPoin = newType === 'own_goal' ? 'opponent' : 'self';
+    newValue = newType === 'own_goal' || newType === 'gol' ? 1 : (newType.startsWith('poin_') ? parseInt(newType.replace('poin_', '')) : 0);
+  }
+
+  let isScoreChanged = false;
+
+  // 1. Kurangi skor lama jika oldEvent bernilai poin > 0
+  if (oldValue > 0) {
+    let affectedScore = null;
+    if (oldTargetPoin === 'opponent') {
+      if (oldEvent.teamType === 'A' && currentScoreB > 0) {
+        currentScoreB = Math.max(0, currentScoreB - oldValue);
+        scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
+      } else if (oldEvent.teamType === 'B' && currentScoreA > 0) {
+        currentScoreA = Math.max(0, currentScoreA - oldValue);
+        scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
+      }
+    } else {
+      if (oldEvent.teamType === 'A' && currentScoreA > 0) {
+        currentScoreA = Math.max(0, currentScoreA - oldValue);
+        scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
+      } else if (oldEvent.teamType === 'B' && currentScoreB > 0) {
+        currentScoreB = Math.max(0, currentScoreB - oldValue);
+        scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
+      }
+    }
+    
+    // Koreksi set score
+    if (matchData.tipe_skor === 'set' && affectedScore) {
+      const period = oldEvent.periode || '';
+      let setNum = 1;
+      if (period.includes('2')) setNum = 2;
+      if (period.includes('3')) setNum = 3;
+      const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
+      matchData[key] = Math.max(0, (parseInt(matchData[key]) || 0) - oldValue);
+    }
+    isScoreChanged = true;
+  }
+
+  // 2. Tambahkan skor baru jika event baru bernilai poin > 0
+  if (newValue > 0) {
+    let affectedScore = null;
+    if (newTargetPoin === 'opponent') {
+      if (oldEvent.teamType === 'A') {
+        currentScoreB += newValue;
+        scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
+      } else if (oldEvent.teamType === 'B') {
+        currentScoreA += newValue;
+        scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
+      }
+    } else {
+      if (oldEvent.teamType === 'A') {
+        currentScoreA += newValue;
+        scoreADisplay.textContent = currentScoreA;
+        affectedScore = 'A';
+      } else if (oldEvent.teamType === 'B') {
+        currentScoreB += newValue;
+        scoreBDisplay.textContent = currentScoreB;
+        affectedScore = 'B';
+      }
+    }
+    
+    // Koreksi set score
+    if (matchData.tipe_skor === 'set' && affectedScore) {
+      const period = oldEvent.periode || '';
+      let setNum = 1;
+      if (period.includes('2')) setNum = 2;
+      if (period.includes('3')) setNum = 3;
+      const key = `s${setNum}_${affectedScore === 'A' ? 1 : 2}`;
+      matchData[key] = (parseInt(matchData[key]) || 0) + newValue;
+    }
+    isScoreChanged = true;
+  }
+
+  if (isScoreChanged) {
+    saveMatchScoreLocally();
+    broadcastState();
+    queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB });
+  }
+
   // 1. Antrekan delete event lama ke server
   queueSyncAction('/api/desktop/delete-event', { id_event: oldEvent.id_event });
 
@@ -2269,6 +2712,9 @@ function saveEditedEventLocally() {
   oldEvent.id_personil = newPlayerId;
   oldEvent.playerName = newPlayerName;
   oldEvent.menit = newMinute;
+  oldEvent.jenis = newType.toLowerCase();
+  oldEvent.nilai = newValue;
+  oldEvent.target_poin = newTargetPoin;
   
   const newEventId = generateUUID();
   oldEvent.id_event = newEventId;
@@ -2277,6 +2723,13 @@ function saveEditedEventLocally() {
 
   // 3. Antrekan add event ter-update ke server
   queueSyncAction('/api/desktop/add-event', oldEvent);
+
+  // Replay status roster jika event yang diubah bernilai starter/sub
+  if (['starter', 'sub_in', 'sub_out'].includes(oldEvent.jenis) || ['starter', 'sub_in', 'sub_out'].includes(newType.toLowerCase())) {
+    restoreRosterStatus();
+  } else {
+    renderRoster();
+  }
 
   renderTimeline();
   modal.style.display = 'none';
@@ -2743,6 +3196,14 @@ window.addEventListener('load', () => {
   if (btnAnonSave) {
     btnAnonSave.addEventListener('click', () => {
       saveAnonymousEvent();
+    });
+  }
+
+  const btnPlayerModalClose = document.getElementById('btn-player-modal-close');
+  const playerEventsModal = document.getElementById('player-events-modal');
+  if (btnPlayerModalClose && playerEventsModal) {
+    btnPlayerModalClose.addEventListener('click', () => {
+      playerEventsModal.style.display = 'none';
     });
   }
 

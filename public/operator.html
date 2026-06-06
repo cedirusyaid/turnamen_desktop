@@ -252,7 +252,7 @@
             <hr>
             
             <div class="roster-section">
-              <h4>🏃 Pemain di Lapangan</h4>
+              <h4 id="active-header-a">🏃 Pemain di Lapangan</h4>
               <div class="roster-list" id="active-list-a">
                 <div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>
               </div>
@@ -297,7 +297,7 @@
             <hr>
             
             <div class="roster-section">
-              <h4>🏃 Pemain di Lapangan</h4>
+              <h4 id="active-header-b">🏃 Pemain di Lapangan</h4>
               <div class="roster-list" id="active-list-b">
                 <div class="roster-empty-message">Pemain belum dimasukkan ke lapangan</div>
               </div>
@@ -365,6 +365,25 @@
       </div>
     </div>
 
+    <!-- MODAL LOG EVENT PEMAIN (LAINNYA) -->
+    <div id="player-events-modal" class="modal-overlay" style="display: none;">
+      <div class="setup-box" style="text-align: left; max-width: 440px; box-sizing: border-box;">
+        <h2 style="margin-top: 0; color: #00d2ff;"><i class="fa fa-list"></i> Pilihan Event Lainnya</h2>
+        <p id="player-modal-info" style="font-weight: bold; margin-bottom: 1.5rem; color: #ff007f; margin-top: 0.2rem; font-size: 1.1rem;">#00 Nama Pemain (Tim A)</p>
+        
+        <input type="hidden" id="player-modal-team">
+        <input type="hidden" id="player-modal-personil-id">
+        
+        <div id="player-modal-events-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 1.8rem;">
+          <!-- Tombol-tombol event non-skor akan digenerate dinamis di sini -->
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+          <button type="button" id="btn-player-modal-close" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; text-align: center;">Tutup</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL EDIT LOG KEJADIAN -->
     <div id="edit-event-modal" class="modal-overlay" style="display: none;">
       <div class="setup-box" style="text-align: left; max-width: 420px; box-sizing: border-box;">
@@ -374,6 +393,13 @@
         <input type="hidden" id="edit-event-id">
         <input type="hidden" id="edit-event-team">
         
+        <div class="form-group" style="margin-bottom: 1.2rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: #fff;">Jenis Event</label>
+          <select id="edit-event-type-select" style="width: 100%; padding: 12px; background: rgba(8, 10, 21, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem;">
+            <!-- Options populated dynamically -->
+          </select>
+        </div>
+
         <div class="form-group" style="margin-bottom: 1.2rem;">
           <label style="display: block; margin-bottom: 0.5rem; color: #fff;">Pemain</label>
           <select id="edit-event-player-select" style="width: 100%; padding: 12px; background: rgba(8, 10, 21, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem;">
