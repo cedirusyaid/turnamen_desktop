@@ -148,11 +148,17 @@ button {
 
 /* MATCH HEADER */
 .match-header {
-  background: rgba(74, 105, 189, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: -1.5rem; /* Menutupi padding-top dari .main-content */
+  z-index: 99;
+  background: rgba(12, 36, 97, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.2rem 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 .match-info-top {
