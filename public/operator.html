@@ -159,76 +159,76 @@
         </header>
 
         <!-- TIMER & KONTROL UTAMA -->
-        <section class="timer-section">
-          <div class="timer-adj-group">
-            <button id="btn-time-min-plus" class="btn-time-adj" title="Tambah 1 Menit">+1 Min</button>
-            <button id="btn-time-min-minus" class="btn-time-adj" title="Kurangi 1 Menit">-1 Min</button>
-          </div>
+        <section class="timer-section" style="display: flex; gap: 15px; align-items: stretch; padding: 1.2rem;">
           
-          <div class="timer-display-wrapper">
-            <div class="timer-display">
-              <span id="timer-minutes">00</span>:<span id="timer-seconds">00</span>
-            </div>
-            <div class="timer-controls">
-              <button id="btn-timer-start" class="btn-success">Start</button>
-              <button id="btn-timer-stop" class="btn-warning" disabled>Pause</button>
-              <button id="btn-timer-reset" class="btn-reset">Reset</button>
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 15px;">
-              <button id="btn-timeout-trigger" class="btn-primary" style="flex: 1; background: #ffa502; box-shadow: 0 5px 15px rgba(255, 165, 2, 0.3); border-radius: 50px; font-weight: 800; margin-top: 0;">
-                <i class="fa fa-clock"></i> TIMEOUT
-              </button>
-              <button id="btn-buzzer-trigger" class="btn-danger" style="flex: 1; background: #ff4757; box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3); border-radius: 50px; font-weight: 800; border: none; color: white; cursor: pointer; padding: 10px 20px;">
-                <i class="fa fa-volume-up"></i> BUZZER
-              </button>
+          <!-- LEFT/CENTER COLUMN: MAIN TIMER CONTROL (3/4 Lebar) -->
+          <div class="timer-control-main-col" style="flex: 75; display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div class="timer-adj-group" style="display: flex; flex-direction: column; gap: 8px;">
+              <button id="btn-time-min-plus" class="btn-time-adj" title="Tambah 1 Menit">+1 Min</button>
+              <button id="btn-time-min-minus" class="btn-time-adj" title="Kurangi 1 Menit">-1 Min</button>
             </div>
             
-            <div class="period-control-wrapper" style="margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;">
-              <span style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Sesi / Babak:</span>
-              <select id="select-period" style="padding: 6px 12px; background: #161a2e; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-family: inherit; font-size: 0.85rem; font-weight: bold; cursor: pointer; outline: none;">
-                <option value="Babak 1">Babak 1</option>
-                <option value="Babak 2">Babak 2</option>
-              </select>
-            </div>
-
-            <!-- SHOT CLOCK CONTROLS (HANYA UNTUK BASKET) -->
-            <div id="shot-clock-operator-box" style="display: none; width: 100%; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; text-align: center;">
-              <div style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">🏀 SHOT CLOCK (24S)</div>
-              <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                <!-- Tombol Tambah/Kurang Detik (Kiri) -->
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                  <button type="button" id="btn-shotclock-plus" class="btn-time-adj" style="min-width: 32px; padding: 2px 5px; font-weight: bold; font-size: 0.8rem; cursor: pointer;" title="Tambah 1 Detik">+</button>
-                  <button type="button" id="btn-shotclock-minus" class="btn-time-adj" style="min-width: 32px; padding: 2px 5px; font-weight: bold; font-size: 0.8rem; cursor: pointer;" title="Kurangi 1 Detik">-</button>
-                </div>
-
-                <!-- Display Waktu -->
-                <div id="operator-shot-clock-display" style="font-size: 3rem; font-family: monospace; font-weight: 900; color: #ff4757; background: #000; padding: 5px 15px; border-radius: 6px; border: 2px solid #ff4757; min-width: 70px;">24</div>
-                
-                <!-- Tombol Aksi Kanan -->
-                <div style="display: flex; flex-direction: column; gap: 5px;">
-                  <div style="display: flex; gap: 5px;">
-                    <button type="button" id="btn-shotclock-start" class="btn-time-adj" style="min-width: 60px; background: #2ed573; color: #fff; border: none; font-weight: bold; cursor: pointer;">START</button>
-                    <button type="button" id="btn-shotclock-pause" class="btn-time-adj" style="min-width: 60px; background: #ffa502; color: #fff; border: none; font-weight: bold; cursor: pointer;" disabled>PAUSE</button>
-                  </div>
-                  <div style="display: flex; gap: 5px;">
-                    <button type="button" id="btn-shotclock-reset24" class="btn-time-adj" style="min-width: 60px; font-weight: bold; cursor: pointer;">R24</button>
-                    <button type="button" id="btn-shotclock-reset14" class="btn-time-adj" style="min-width: 60px; font-weight: bold; cursor: pointer;">R14</button>
-                  </div>
-                </div>
+            <div class="timer-display-wrapper" style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+              <div class="timer-display" style="font-size: 2.8rem; font-weight: 700; color: #fff; font-family: monospace; letter-spacing: 2px;">
+                <span id="timer-minutes">00</span>:<span id="timer-seconds">00</span>
               </div>
-
-              <!-- Tombol Tampilkan/Sembunyikan Manual (Bawah) -->
-              <div style="margin-top: 10px; display: flex; justify-content: center;">
-                <button type="button" id="btn-shotclock-toggle-display" class="btn-time-adj" style="min-width: 140px; font-weight: bold; background: rgba(0, 210, 255, 0.1); border-color: rgba(0, 210, 255, 0.4); color: #00d2ff; border-radius: 6px; cursor: pointer; padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                  <i class="fa fa-eye"></i> TAMPILKAN
+              <div class="timer-controls" style="display: flex; gap: 8px; margin-top: 5px;">
+                <button id="btn-timer-start" class="btn-success" style="padding: 6px 15px; border-radius: 6px; font-size: 0.9rem; font-weight: bold;">Start</button>
+                <button id="btn-timer-stop" class="btn-warning" style="padding: 6px 15px; border-radius: 6px; font-size: 0.9rem; font-weight: bold;" disabled>Pause</button>
+                <button id="btn-timer-reset" class="btn-reset" style="padding: 6px 15px; border-radius: 6px; font-size: 0.9rem; font-weight: bold;">Reset</button>
+              </div>
+              <div style="display: flex; gap: 8px; justify-content: center; width: 100%; max-width: 360px; margin-top: 10px;">
+                <button id="btn-timeout-trigger" class="btn-primary" style="flex: 1; background: #ffa502; box-shadow: 0 4px 10px rgba(255, 165, 2, 0.3); border-radius: 50px; font-weight: 800; margin-top: 0; padding: 6px 12px; font-size: 0.75rem;">
+                  <i class="fa fa-clock"></i> TIMEOUT
+                </button>
+                <button id="btn-buzzer-trigger" class="btn-danger" style="flex: 1; background: #ff4757; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3); border-radius: 50px; font-weight: 800; border: none; color: white; cursor: pointer; padding: 6px 12px; font-size: 0.75rem;">
+                  <i class="fa fa-volume-up"></i> BUZZER
                 </button>
               </div>
+              
+              <div class="period-control-wrapper" style="margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 6px;">
+                <span style="font-size: 0.7rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Sesi / Babak:</span>
+                <select id="select-period" style="padding: 4px 8px; background: #161a2e; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-family: inherit; font-size: 0.75rem; font-weight: bold; cursor: pointer; outline: none;">
+                  <option value="Babak 1">Babak 1</option>
+                  <option value="Babak 2">Babak 2</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="timer-adj-group" style="display: flex; flex-direction: column; gap: 8px;">
+              <button id="btn-time-sec-plus" class="btn-time-adj" title="Tambah 1 Detik">+1 Detik</button>
+              <button id="btn-time-sec-minus" class="btn-time-adj" title="Kurangi 1 Detik">-1 Detik</button>
             </div>
           </div>
           
-          <div class="timer-adj-group">
-            <button id="btn-time-sec-plus" class="btn-time-adj" title="Tambah 1 Detik">+1 Detik</button>
-            <button id="btn-time-sec-minus" class="btn-time-adj" title="Kurangi 1 Detik">-1 Detik</button>
+          <!-- RIGHT COLUMN: SHOT CLOCK (1/4 Lebar, Basket Only) -->
+          <div id="shot-clock-operator-box" style="display: none; flex: 25; flex-direction: column; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;">
+            <div style="font-size: 0.7rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">🏀 SHOT CLOCK</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
+              <!-- Display Waktu -->
+              <div id="operator-shot-clock-display" style="font-size: 2.2rem; font-family: monospace; font-weight: 900; color: #ff4757; background: #000; padding: 2px 8px; border-radius: 6px; border: 2px solid #ff4757; min-width: 52px; line-height: 1.2;">24</div>
+              
+              <!-- Tombol Aksi Kanan -->
+              <div style="display: flex; flex-direction: column; gap: 3px; flex: 1;">
+                <div style="display: flex; gap: 3px;">
+                  <button type="button" id="btn-shotclock-start" class="btn-time-adj" style="flex: 1; min-width: 42px; padding: 3px 2px; font-size: 0.65rem; background: #2ed573; color: #fff; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">START</button>
+                  <button type="button" id="btn-shotclock-pause" class="btn-time-adj" style="flex: 1; min-width: 42px; padding: 3px 2px; font-size: 0.65rem; background: #ffa502; color: #fff; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;" disabled>PAUSE</button>
+                </div>
+                <div style="display: flex; gap: 3px;">
+                  <button type="button" id="btn-shotclock-reset24" class="btn-time-adj" style="flex: 1; min-width: 42px; padding: 3px 2px; font-size: 0.65rem; font-weight: bold; cursor: pointer; border-radius: 4px;">R24</button>
+                  <button type="button" id="btn-shotclock-reset14" class="btn-time-adj" style="flex: 1; min-width: 42px; padding: 3px 2px; font-size: 0.65rem; font-weight: bold; cursor: pointer; border-radius: 4px;">R14</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tombol Tambah/Kurang Detik & Tampilkan Manual (Bawah) -->
+            <div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center; align-items: center; width: 100%;">
+              <button type="button" id="btn-shotclock-minus" class="btn-time-adj" style="min-width: 22px; padding: 2px 4px; font-weight: bold; font-size: 0.7rem; cursor: pointer; border-radius: 4px;" title="Kurangi 1 Detik">-</button>
+              <button type="button" id="btn-shotclock-toggle-display" class="btn-time-adj" style="flex: 1; min-width: 60px; font-weight: bold; background: rgba(0, 210, 255, 0.1); border-color: rgba(0, 210, 255, 0.4); color: #00d2ff; border-radius: 4px; cursor: pointer; padding: 4px 6px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                <i class="fa fa-eye"></i> SHOW
+              </button>
+              <button type="button" id="btn-shotclock-plus" class="btn-time-adj" style="min-width: 22px; padding: 2px 4px; font-weight: bold; font-size: 0.7rem; cursor: pointer; border-radius: 4px;" title="Tambah 1 Detik">+</button>
+            </div>
           </div>
         </section>
 

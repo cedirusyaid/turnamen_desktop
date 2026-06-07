@@ -667,7 +667,7 @@ function initMatchPanel() {
       shotClockSeconds = 24;
     }
     updateShotClockToggleBtnDisplay();
-    if (shotClockBox) shotClockBox.style.display = 'block';
+    if (shotClockBox) shotClockBox.style.display = 'flex';
     const disp = document.getElementById('operator-shot-clock-display');
     if (disp) disp.textContent = shotClockSeconds;
   } else {
