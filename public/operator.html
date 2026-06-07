@@ -126,6 +126,11 @@
           <div class="vs-container">
             <div class="team-header left">
               <h1 id="team-a-name">TEAM A</h1>
+              <!-- Team Foul A Header Box -->
+              <div id="header-foul-section-a" style="display: none; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.8rem; font-weight: bold; justify-content: flex-start;">
+                <span style="color: #ff4757; text-shadow: 0 0 5px rgba(255, 71, 87, 0.3); letter-spacing: 0.5px;">TEAM FOULS</span>
+                <span id="header-foul-count-a" style="background: #eccc68; color: #0c2461; padding: 2px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 800; min-width: 24px; text-align: center; transition: all 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+              </div>
             </div>
             <div class="score-header">
               <span id="score-a" class="score-num">0</span>
@@ -134,6 +139,11 @@
             </div>
             <div class="team-header right">
               <h1 id="team-b-name">TEAM B</h1>
+              <!-- Team Foul B Header Box -->
+              <div id="header-foul-section-b" style="display: none; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.8rem; font-weight: bold; justify-content: flex-end;">
+                <span style="color: #ff4757; text-shadow: 0 0 5px rgba(255, 71, 87, 0.3); letter-spacing: 0.5px;">TEAM FOULS</span>
+                <span id="header-foul-count-b" style="background: #eccc68; color: #0c2461; padding: 2px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 800; min-width: 24px; text-align: center; transition: all 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+              </div>
             </div>
             <div id="tennis-game-points-wrapper" style="grid-column: 1 / span 3; display: none; justify-content: center; gap: 40px; margin-top: 15px; font-weight: bold;">
               <div style="text-align: center;">
@@ -492,5 +502,62 @@
   </div>
   <script src="js/jsqr.min.js"></script>
   <script src="js/operator.js"></script>
+  <script>
+    // Sinkronisasi otomatis Team Fouls ke Header (Sticky)
+    document.addEventListener('DOMContentLoaded', () => {
+      const syncFoul = (srcId, destId, sectionId) => {
+        const srcEl = document.getElementById(srcId);
+        const destEl = document.getElementById(destId);
+        const destSection = document.getElementById(sectionId);
+        const srcSection = srcEl ? srcEl.closest('[id^="foul-section"]') : null;
+
+        if (srcEl && destEl) {
+          // Sinkronisasi nilai awal
+          destEl.textContent = srcEl.textContent;
+          const valInit = parseInt(srcEl.textContent || 0);
+          if (valInit >= 5) {
+            destEl.style.background = '#ff4757';
+            destEl.style.color = '#fff';
+            destEl.style.boxShadow = '0 0 10px rgba(255, 71, 87, 0.6)';
+          } else {
+            destEl.style.background = '#eccc68';
+            destEl.style.color = '#0c2461';
+            destEl.style.boxShadow = 'none';
+          }
+
+          // Gunakan MutationObserver untuk memantau perubahan teks foul
+          const observer = new MutationObserver(() => {
+            destEl.textContent = srcEl.textContent;
+            const val = parseInt(srcEl.textContent || 0);
+            if (val >= 5) {
+              destEl.style.background = '#ff4757';
+              destEl.style.color = '#fff';
+              destEl.style.boxShadow = '0 0 10px rgba(255, 71, 87, 0.6)';
+            } else {
+              destEl.style.background = '#eccc68';
+              destEl.style.color = '#0c2461';
+              destEl.style.boxShadow = 'none';
+            }
+          });
+          observer.observe(srcEl, { childList: true, characterData: true, subtree: true });
+
+          // Gunakan MutationObserver untuk memantau visibilitas (tampil hanya jika cabor basket/futsal aktif)
+          if (srcSection && destSection) {
+            destSection.style.display = (srcSection.style.display === 'flex' || srcSection.style.display === 'block') ? 'flex' : 'none';
+            const visibilityObserver = new MutationObserver(() => {
+              destSection.style.display = (srcSection.style.display === 'flex' || srcSection.style.display === 'block') ? 'flex' : 'none';
+            });
+            visibilityObserver.observe(srcSection, { attributes: true, attributeFilter: ['style'] });
+          }
+        }
+      };
+
+      // Tunggu inisialisasi awal DOM
+      setTimeout(() => {
+        syncFoul('foul-count-a', 'header-foul-count-a', 'header-foul-section-a');
+        syncFoul('foul-count-b', 'header-foul-count-b', 'header-foul-section-b');
+      }, 500);
+    });
+  </script>
 </body>
 </html>
