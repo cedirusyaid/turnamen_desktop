@@ -654,6 +654,12 @@ function initMatchPanel() {
     el.style.display = isBasket ? 'inline-block' : 'none';
   });
 
+  // Tampilkan/Sembunyikan tombol quick foul tim (Basket/Futsal)
+  const hasFoul = matchData.id_cabor == 2 || matchData.id_cabor == 3 || matchData.cabor_nama.toLowerCase().includes('basket') || matchData.cabor_nama.toLowerCase().includes('futsal');
+  document.querySelectorAll('.btn-foul-only').forEach(el => {
+    el.style.display = hasFoul ? 'inline-block' : 'none';
+  });
+
   if (isBasket) {
     showShotClock = true;
     if (!isPollingReload) {
@@ -1668,6 +1674,59 @@ function recordQuickScoreEvent(team, points) {
       teamName: targetPoin === 'opponent' ? (team === 'A' ? matchData.team_b_nama : matchData.team_a_nama) : (team === 'A' ? matchData.team_a_nama : matchData.team_b_nama)
     }
   });
+
+  // Antrekan sinkronisasi API ke server
+  queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB, foul_a: matchData.foul_a || 0, foul_b: matchData.foul_b || 0 });
+  queueSyncAction('/api/desktop/add-event', eventPayload);
+  queueSyncAction('/api/desktop/update-timer', { id_jadwal: matchData.id_jadwal, seconds: timerSeconds, is_running: timerInterval ? 1 : 0 });
+
+  renderTimeline();
+}
+
+window.recordQuickFoulEvent = function(team) {
+  if (!matchData) return;
+
+  const tipeEvent = 'FOUL';
+  const label = 'Foul';
+  const weight = 0;
+
+  // Tambahkan foul secara lokal di state operator
+  if (team === 'A') {
+    matchData.foul_a = (parseInt(matchData.foul_a) || 0) + 1;
+    foulCountA.textContent = matchData.foul_a;
+    if (matchData.foul_a >= 5) foulCountA.style.color = '#ff4757';
+  } else {
+    matchData.foul_b = (parseInt(matchData.foul_b) || 0) + 1;
+    foulCountB.textContent = matchData.foul_b;
+    if (matchData.foul_b >= 5) foulCountB.style.color = '#ff4757';
+  }
+
+  // Hitung menit berjalan
+  const elapsedMinutes = (timerSeconds > 0) ? Math.floor((timerSeconds - 1) / 60) + 1 : 0;
+
+  // Buat payload event
+  const eventPayload = {
+    id_event: generateUUID(),
+    id_jadwal: matchData.id_jadwal,
+    id_personil: 0, // 0 artinya tanpa pemain / team-wide foul
+    id_team: team === 'A' ? matchData.id_team_a : matchData.id_team_b,
+    jenis: 'foul',
+    menit: elapsedMinutes,
+    playerName: "", 
+    teamType: team,
+    target_poin: 'self',
+    nilai: 0,
+    periode: matchData.current_period || 'Babak 1',
+    keterangan: "Team Foul"
+  };
+
+  if (!matchData.events) matchData.events = [];
+  matchData.events.unshift(eventPayload);
+  localStorage.setItem('active_match_data', JSON.stringify(matchData));
+
+  // Simpan skor terbaru secara lokal & broadcast
+  saveMatchScoreLocally();
+  broadcastState();
 
   // Antrekan sinkronisasi API ke server
   queueSyncAction('/api/desktop/sync-score', { id_jadwal: matchData.id_jadwal, skor_a: currentScoreA, skor_b: currentScoreB, foul_a: matchData.foul_a || 0, foul_b: matchData.foul_b || 0 });
