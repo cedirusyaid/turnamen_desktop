@@ -811,6 +811,9 @@ function renderRoster() {
       const displayNameEscaped = displayName.replace(/'/g, "\\'");
 
       if (p.status === 'active') {
+        const hasFoulEvent = matchData.cabor_events && matchData.cabor_events.some(ev => ev.kode_event.toLowerCase() === 'foul');
+        const supportsFoul = hasFoulEvent || matchData.id_cabor == 2 || matchData.id_cabor == 3 || matchData.cabor_nama.toLowerCase().includes('basket') || matchData.cabor_nama.toLowerCase().includes('futsal');
+
         if (matchData.cabor_events && matchData.cabor_events.length > 0) {
           // Tombol Poin (bobot_skor > 0 dan bukan own goal)
           matchData.cabor_events.forEach(ev => {
@@ -822,18 +825,33 @@ function renderRoster() {
               `;
             }
           });
+          // Tampilkan tombol foul langsung jika cabor mendukung foul
+          if (hasFoulEvent) {
+            actionButtons += `
+              <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'foul', 0)" title="Foul" style="background: #ff4757; color: #fff;">F</button>
+            `;
+          }
           // Tambahkan tombol untuk log event lainnya
           actionButtons += `
             <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayNameEscaped}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
           `;
         } else {
-          if (isBasket) {
-            actionButtons = `
-              <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_1', 1)" title="Free Throw (+1)">1P</button>
-              <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_2', 2)" title="2 Point (+2)">2P</button>
-              <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_3', 3)" title="3 Point (+3)">3P</button>
-              <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayNameEscaped}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
-            `;
+          if (supportsFoul) {
+            if (isBasket) {
+              actionButtons = `
+                <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_1', 1)" title="Free Throw (+1)">1P</button>
+                <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_2', 2)" title="2 Point (+2)">2P</button>
+                <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'poin_3', 3)" title="3 Point (+3)">3P</button>
+                <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'foul', 0)" title="Foul" style="background: #ff4757; color: #fff;">F</button>
+                <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayNameEscaped}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
+              `;
+            } else {
+              actionButtons = `
+                <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'gol', 1)" title="Gol">⚽</button>
+                <button class="btn-player-action merah" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'foul', 0)" title="Foul" style="background: #ff4757; color: #fff;">F</button>
+                <button class="btn-player-action lainnya" onclick="showPlayerMoreEvents('${team}', ${p.id_personil}, '${displayNameEscaped}', '#${p.nomor_punggung || '-'}')" title="Log Event Lainnya"><i class="fa fa-ellipsis-h"></i></button>
+              `;
+            }
           } else {
             actionButtons = `
               <button class="btn-player-action gol" onclick="recordPlayerEvent('${team}', ${p.id_personil}, 'gol', 1)" title="Gol">⚽</button>
@@ -901,8 +919,9 @@ window.showPlayerMoreEvents = function(team, personilId, playerName, playerNumbe
       const code = ev.kode_event.toLowerCase();
       // Filter out points (bobot_skor > 0, EXCEPT own_goal / gol_bunuh_diri which are non-points for own team)
       const isPoint = ev.bobot_skor > 0 && !code.includes('own_goal') && !code.includes('bunuh');
+      const isFoul = code === 'foul';
       
-      if (!isPoint) {
+      if (!isPoint && !isFoul) {
         let btnClass = 'gol';
         if (code.includes('kuning')) {
           btnClass = 'kuning';
@@ -939,7 +958,6 @@ window.showPlayerMoreEvents = function(team, personilId, playerName, playerNumbe
     // Fallback events
     if (isBasket) {
       const basketEvents = [
-        { code: 'foul', label: 'Foul', icon: 'F', weight: 0, class: 'merah' },
         { code: 'assist', label: 'Assist', icon: 'AST', weight: 0, class: 'assist' },
         { code: 'rebound', label: 'Rebound', icon: 'REB', weight: 0, class: 'rebound' },
         { code: 'block', label: 'Block', icon: 'BLK', weight: 0, class: 'block' },
