@@ -676,7 +676,6 @@ function initMatchPanel() {
   }
 
   // Init Foul UI
-  const hasFoul = matchData.id_cabor == 2 || matchData.id_cabor == 3;
   if (hasFoul) {
     foulSectionA.style.display = 'flex';
     foulSectionB.style.display = 'flex';
